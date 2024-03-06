@@ -9,12 +9,9 @@ pub fn Home() -> impl IntoView {
     let (input_string, set_input_string) = create_signal("0".to_string());
     let (input_base, set_input_base) = create_signal(10.0);
     let (output_base, set_output_base) = create_signal(2.0);
+
     let value = move || val_from_base(&input_string(), input_base());
-    let output_value = move || {
-        value()
-            .map(|v| val_to_base(v, output_base()))
-            .unwrap_or_else(|| "Invalid Input".to_string())
-    };
+    let output_representation = move || value().and_then(|v| val_to_base(v, output_base()));
 
     view! {
         <ErrorBoundary fallback=|errors| {
@@ -38,37 +35,54 @@ pub fn Home() -> impl IntoView {
 
             <div class="container">
 
-                <h1>"Change Bases"</h1>
+                <h1>"CHange.BaSe"</h1>
 
-                <div><span>"Input Value: "</span><span>{value}</span></div>
-
-                <div class="buttons">
-
-        <label>
-        "Input String"
-                    <input type="text" value=input_string on:input= move |ev| {
-                        set_input_string(event_target_value(&ev))
-                    }/>
-            </label>
-        <label>
-        "Input Base"
-                    <input type="number" value=input_base on:input= move |ev| {
-                        if let Ok(n) = f64::from_str(&event_target_value(&ev)) {
-                            set_input_base(n);
-                        }
-                    }/>
-            </label>
-        <label>
-        "Output Base"
-                    <input type="number" value=output_base on:input= move |ev| {
-                        if let Ok(n) = f64::from_str(&event_target_value(&ev)) {
-                            set_output_base(n);
-                        }
-                    }/>
-            </label>
+                <div class="value">
+                    {move || value().map(|v| view! {
+                        "Input Value: "
+                        <code>{v}<sub>"10"</sub></code>
+                    }).unwrap_or_else(|e| view! {
+                        <>{e}</>
+                    })}
                 </div>
 
-                <div><span>"Output Value: "</span><span>{output_value}</span></div>
+                <div class="inputs">
+                    <label>
+                    "Input String"
+                        <input type="text" value=input_string on:input= move |ev| {
+                            set_input_string(event_target_value(&ev))
+                        }/>
+                        </label>
+                    <label>
+                    "Input Base"
+                        <input type="number" value=input_base on:input= move |ev| {
+                            if let Ok(n) = f64::from_str(&event_target_value(&ev)) {
+                                set_input_base(n);
+                            }
+                        }/>
+                        </label>
+                    <label>
+                    "Output Base"
+                        <input type="number" value=output_base on:input= move |ev| {
+                            if let Ok(n) = f64::from_str(&event_target_value(&ev)) {
+                                set_output_base(n);
+                            }
+                        }/>
+                    </label>
+                </div>
+
+
+                <div class="value">
+                    {move || value().map(|_|
+                        output_representation().map(|output| view!{
+                            <>
+                                "Output Value: "
+                                <code>{output}<sub>{output_base}</sub></code>
+                            </>
+                        }).unwrap_or_else(|e| view! {
+                            <>{e}</>
+                        })).unwrap_or_else(|_| view!{<>""</>})}
+                </div>
 
             </div>
         </ErrorBoundary>

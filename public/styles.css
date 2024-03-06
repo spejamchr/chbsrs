@@ -21,9 +21,34 @@ body {
   align-items: center;
 }
 
-.buttons {
+.inputs {
   display: flex;
+  flex-direction: column;
   justify-content: space-evenly;
+  gap: var(--size-relative-6);
+  margin-top: var(--size-relative-8);
+  margin-bottom: var(--size-relative-8);
+  font-size: var(--font-size-2);
+}
+
+.value {
+  font-size: var(--font-size-3);
+  word-wrap: anywhere;
+  max-inline-size: var(--size-content-3);
+}
+
+.value code {
+  white-space: pre-wrap;
+}
+
+.value sub {
+  margin-left: var(--size-relative-1);
+}
+
+.inputs input {
+  padding: var(--size-relative-3);
+  margin-left: var(--size-relative-3);
+  font-family: var(--font-mono);
 }
 
 h1,

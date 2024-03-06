@@ -1,8 +1,9 @@
 use std::collections::HashMap;
 
-fn base_digits_to_val(digits: &str, base: f64) -> Option<f64> {
+fn base_digits_to_val(digits: &str, base: f64) -> Result<f64, String> {
     let digit_to_val: HashMap<char, f64> = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"
         .chars()
+        .take(base.ceil() as usize)
         .enumerate()
         .map(|(i, c)| (c, i as f64))
         .collect();
@@ -11,18 +12,22 @@ fn base_digits_to_val(digits: &str, base: f64) -> Option<f64> {
         .chars()
         .rev()
         .enumerate()
-        .fold(Some(0.0), |acc, (i, char)| {
+        .fold(Ok(0.0), |acc, (i, char)| {
             acc.and_then(|sum| {
                 digit_to_val
-                    .get(&char)
+                    .get(&char.to_uppercase().next().unwrap_or(' '))
                     .and_then(|int| i.try_into().ok().map(|exp| sum + int * base.powi(exp)))
+                    .ok_or_else(|| format!("Unrecognized digit in input: {char}"))
             })
         })
 }
 
-pub fn val_from_base(input: &str, base: f64) -> Option<f64> {
+pub fn val_from_base(input: &str, base: f64) -> Result<f64, String> {
+    if base <= 1.0 {
+        return Err("Input base must be greater than 1".to_string());
+    }
     match input.split('.').collect::<Vec<_>>()[..] {
-        [] => Some(0.0),
+        [] => Ok(0.0),
         [positive] => base_digits_to_val(positive, base),
         [positive, negative] => base_digits_to_val(positive, base).and_then(|integer| {
             base_digits_to_val(negative, base).and_then(|fractional| {
@@ -30,11 +35,11 @@ pub fn val_from_base(input: &str, base: f64) -> Option<f64> {
                     .chars()
                     .count()
                     .try_into()
-                    .ok()
                     .map(|exp| integer + fractional / (base.powi(exp)))
+                    .map_err(|e| e.to_string())
             })
         }),
-        _ => None,
+        _ => Err("The input may have at most one `.`".to_string()),
     }
 }
 
@@ -45,17 +50,17 @@ fn digit_to_str(digit: usize) -> String {
         .unwrap_or_else(|| format!("[{digit}]"))
 }
 
-pub fn val_to_base(mut value: f64, base: f64) -> String {
-    if value == 0.0 {
-        return "0".to_owned();
+pub fn val_to_base(mut value: f64, base: f64) -> Result<String, String> {
+    if base <= 1.0 {
+        return Err("Output base must be greater than 1".to_string());
     }
-    if base == 1.0 {
-        return (0..value.floor() as usize).map(|_| '1').collect();
+    if value == 0.0 {
+        return Ok("0".to_owned());
     }
 
     let mut exp: i32 = (value.ln() / base.ln()).floor().max(0.0) as i32;
     let mut output = String::from("");
-    let precision = -30;
+    let precision = -10;
 
     while (value.abs() > base.powi(precision) || exp >= 0) && exp > precision {
         let position = base.powi(exp);
@@ -68,5 +73,5 @@ pub fn val_to_base(mut value: f64, base: f64) -> String {
         exp -= 1;
     }
 
-    return output;
+    return Ok(output);
 }

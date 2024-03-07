@@ -1,7 +1,10 @@
 use core::str::FromStr;
 use leptos::*;
 
-use crate::bases::{val_from_base, val_to_base};
+use crate::{
+    bases::{val_from_base, val_to_base},
+    components::value::Value,
+};
 
 /// Default Home Page
 #[component]
@@ -11,7 +14,12 @@ pub fn Home() -> impl IntoView {
     let (output_base, set_output_base) = create_signal(2.0);
 
     let value = move || val_from_base(&input_string(), input_base());
-    let output_representation = move || value().and_then(|v| val_to_base(v, output_base()));
+    let string_value = move || value().map(|v| v.to_string());
+    let output_representation = move || {
+        value()
+            .map_err(|_| "".to_string())
+            .and_then(|v| val_to_base(v, output_base()))
+    };
 
     view! {
         <ErrorBoundary fallback=|errors| {
@@ -35,16 +43,13 @@ pub fn Home() -> impl IntoView {
 
             <div class="container">
 
-                <h1>"CHange.BaSe"</h1>
+                <h1>"Change.Base"</h1>
 
-                <div class="value">
-                    {move || value().map(|v| view! {
-                        "Input Value: "
-                        <code>{v}<sub>"10"</sub></code>
-                    }).unwrap_or_else(|e| view! {
-                        <>{e}</>
-                    })}
-                </div>
+                <Value
+                    title={move || "Input Value: ".to_string()}
+                    value={string_value}
+                    base={input_base}
+                />
 
                 <div class="inputs">
                     <label>
@@ -72,17 +77,11 @@ pub fn Home() -> impl IntoView {
                 </div>
 
 
-                <div class="value">
-                    {move || value().map(|_|
-                        output_representation().map(|output| view!{
-                            <>
-                                "Output Value: "
-                                <code>{output}<sub>{output_base}</sub></code>
-                            </>
-                        }).unwrap_or_else(|e| view! {
-                            <>{e}</>
-                        })).unwrap_or_else(|_| view!{<>""</>})}
-                </div>
+                <Value
+                    title={move || "Output Value: ".to_string()}
+                    value={output_representation}
+                    base={output_base}
+                />
 
             </div>
         </ErrorBoundary>

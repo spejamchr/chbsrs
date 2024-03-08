@@ -3,15 +3,15 @@ use leptos::*;
 
 use crate::{
     bases::{val_from_base, val_to_base},
-    components::value::Value,
+    components::{output_details::OutputDetails, value::Value},
 };
 
 /// Default Home Page
 #[component]
 pub fn Home() -> impl IntoView {
-    let (input_string, set_input_string) = create_signal("0".to_string());
+    let (input_string, set_input_string) = create_signal("9999".to_string());
     let (input_base, set_input_base) = create_signal(10.0);
-    let (output_base, set_output_base) = create_signal(2.0);
+    let (output_base, set_output_base) = create_signal(10.0);
 
     let value = move || val_from_base(&input_string(), input_base());
     let string_value = move || value().map(|v| v.to_string());
@@ -82,6 +82,8 @@ pub fn Home() -> impl IntoView {
                     value={output_representation}
                     base={output_base}
                 />
+
+                <OutputDetails output={output_representation} base={output_base}/>
 
             </div>
         </ErrorBoundary>

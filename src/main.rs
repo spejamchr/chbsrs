@@ -1,5 +1,5 @@
-use leptos::*;
 use chbsrs::App;
+use leptos::*;
 
 fn main() {
     // set up logging

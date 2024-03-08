@@ -75,3 +75,32 @@ pub fn val_to_base(mut value: f64, base: f64) -> Result<String, String> {
 
     return Ok(output);
 }
+
+pub fn rep_to_digit_exponent_pairs(rep: &str) -> Vec<(String, isize)> {
+    let mut digits: Vec<String> = Vec::new();
+    let chars: Vec<char> = rep.chars().collect();
+    let mut idx = 0;
+    while idx < chars.len() {
+        if chars[idx] == '[' {
+            let mut j = idx + 1;
+            while j < chars.len() && chars[j] != ']' {
+                j += 1
+            }
+            digits.push(chars[idx + 1..j].iter().collect());
+            idx = j + 1;
+        } else {
+            digits.push(chars[idx].to_string());
+            idx += 1;
+        }
+    }
+
+    let max_exp: isize = (digits.iter().take_while(|&c| c != ".").count() - 1)
+        .try_into()
+        .unwrap();
+
+    digits
+        .into_iter()
+        .filter(|c| c != ".")
+        .zip((-max_exp..).map(|i| -i))
+        .collect()
+}

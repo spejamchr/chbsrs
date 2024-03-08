@@ -12,6 +12,7 @@
 body {
   font-family: sans-serif;
   text-align: center;
+  padding-bottom: var(--size-content-1);
 }
 
 .container {
@@ -49,6 +50,19 @@ body {
   padding: var(--size-relative-3);
   margin-left: var(--size-relative-3);
   font-family: var(--font-mono);
+}
+
+.red {
+  color: var(--red-6);
+  font-weight: bold;
+}
+
+.align-end {
+  text-align: end;
+}
+
+.right-space {
+  margin-right: var(--size-relative-3);
 }
 
 h1,

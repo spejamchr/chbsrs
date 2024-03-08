@@ -1,0 +1,76 @@
+use std::collections::{HashMap, HashSet};
+
+use leptos::{html::*, *};
+
+use crate::bases::rep_to_digit_exponent_pairs;
+
+pub fn content<F, G>(output: F, base: Signal<f64>, close: G) -> impl IntoView
+where
+    F: 'static + Fn() -> String,
+    G: 'static + Fn() -> (),
+{
+    let digit_exponent_pairs = rep_to_digit_exponent_pairs(&output());
+    let non_digitals: HashMap<String, usize> = ('A'..'Z')
+        .map(|c| c.to_string())
+        .enumerate()
+        .map(|(i, s)| (s, i + 10))
+        .collect();
+    let digit_conversion = match digit_exponent_pairs
+        .iter()
+        .any(|(s, _)| non_digitals.contains_key(s))
+    {
+        true => tr()
+            .child(td().child(format!("Output value w/base-{} positioned values:", base())))
+            .child((digit_exponent_pairs
+                .iter()
+                .map(|(c, i)| {
+                    td().child(
+                        span().classes("red").child(
+                            non_digitals
+                                .get(c)
+                                .map(|i| i.to_string())
+                                .unwrap_or_else(|| c.to_string()),
+                        ),
+                    )
+                    .child('(')
+                    .child(base())
+                    .child(sup().child(*i))
+                    .child(')')
+                })
+                .intersperse_with(|| td().child(" + "))
+                .collect_view(),)),
+        false => tr(),
+    };
+    div()
+        .child(
+            button()
+                .on(ev::click, move |_| close())
+                .child("Close Details"),
+        )
+        .child(p().child("The output value (digits in red) can be converted to base-10:"))
+        .child(
+            table().child(
+                tbody()
+                    .child(
+                        tr().child(
+                            td().child(format!(
+                                "Output value w/base-{} positioned values:",
+                                base()
+                            )),
+                        )
+                        .child((digit_exponent_pairs
+                            .iter()
+                            .map(|(c, i)| {
+                                td().child(span().classes("red").child(c))
+                                    .child('(')
+                                    .child(base())
+                                    .child(sup().child(*i))
+                                    .child(')')
+                            })
+                            .intersperse_with(|| td().child(" + "))
+                            .collect_view(),)),
+                    )
+                    .child(digit_conversion),
+            ),
+        )
+}

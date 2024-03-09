@@ -14,7 +14,7 @@ pub fn OutputDetails<F>(output: F, #[prop(into)] base: Signal<f64>) -> impl Into
 where
     F: 'static + Fn() -> Result<String, String>,
 {
-    let (is_open, set_is_open) = create_signal(OpenState::Open);
+    let (is_open, set_is_open) = create_signal(OpenState::Closed);
     let close = move || set_is_open(OpenState::Closed);
     let open = move |_| set_is_open(OpenState::Open);
 

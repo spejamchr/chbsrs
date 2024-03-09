@@ -59,6 +59,10 @@ pub fn val_to_base(mut value: f64, base: f64) -> Result<String, String> {
     }
 
     let mut exp: i32 = (value.ln() / base.ln()).floor().max(0.0) as i32;
+    exp += 1;
+    if ((value / base.powi(exp)) % base).floor() == 0.0 {
+        exp -= 1;
+    }
     let mut output = String::from("");
     let precision = -10;
 

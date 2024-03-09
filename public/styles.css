@@ -43,7 +43,7 @@ body {
 }
 
 .value sub {
-  margin-left: var(--size-relative-1);
+  margin-left: var(--size-relative-000);
 }
 
 .inputs input {

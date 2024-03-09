@@ -9,14 +9,36 @@ use crate::{
 /// Default Home Page
 #[component]
 pub fn Home() -> impl IntoView {
-    let (input_string, set_input_string) = create_signal("9999".to_string());
-    let (input_base, set_input_base) = create_signal(10.0);
-    let (output_base, set_output_base) = create_signal(10.0);
+    let (input_string, set_input_string) = create_signal("11EE4E7C6FF3A6".to_string());
+    let (input_base, set_input_base) = create_signal(16.0);
+    let (output_base, set_output_base) = create_signal(42.0);
 
-    let value = move || val_from_base(&input_string(), input_base());
-    let string_value = move || value().map(|v| v.to_string());
+    let val_from_popular_strings = move |s: &str| match s.to_lowercase().as_str() {
+        "phi" => Some((1.0 + f64::sqrt(5.0)) / 2.0),
+        "φ" => Some((1.0 + f64::sqrt(5.0)) / 2.0),
+        "pi" => Some(std::f64::consts::PI),
+        "e" => Some(std::f64::consts::E),
+        "sqrt2" => Some(std::f64::consts::SQRT_2),
+        _ => None,
+    };
+
+    let update_base = move |setter: WriteSignal<f64>| {
+        move |ev| {
+            let s = event_target_value(&ev);
+            match f64::from_str(&s)
+                .ok()
+                .or_else(|| val_from_popular_strings(&s))
+            {
+                Some(n) => setter(n),
+                None => (),
+            }
+        }
+    };
+
+    let result_value = move || val_from_base(&input_string(), input_base());
+    let string_value = move || result_value().map(|v| v.to_string());
     let output_representation = move || {
-        value()
+        result_value()
             .map_err(|_| "".to_string())
             .and_then(|v| val_to_base(v, output_base()))
     };
@@ -43,12 +65,12 @@ pub fn Home() -> impl IntoView {
 
             <div class="container">
 
-                <h1>"Change.Base"</h1>
+                <h1>"ChangeBase"</h1>
 
                 <Value
                     title={move || "Input Value: ".to_string()}
                     value={string_value}
-                    base={input_base}
+                    base={|| 10.0}
                 />
 
                 <div class="inputs">
@@ -57,22 +79,14 @@ pub fn Home() -> impl IntoView {
                         <input type="text" value=input_string on:input= move |ev| {
                             set_input_string(event_target_value(&ev))
                         }/>
-                        </label>
+                    </label>
                     <label>
                     "Input Base"
-                        <input type="number" value=input_base on:input= move |ev| {
-                            if let Ok(n) = f64::from_str(&event_target_value(&ev)) {
-                                set_input_base(n);
-                            }
-                        }/>
-                        </label>
+                        <input value=input_base on:input=update_base(set_input_base) />
+                    </label>
                     <label>
                     "Output Base"
-                        <input type="number" value=output_base on:input= move |ev| {
-                            if let Ok(n) = f64::from_str(&event_target_value(&ev)) {
-                                set_output_base(n);
-                            }
-                        }/>
+                        <input value=output_base on:input=update_base(set_output_base) />
                     </label>
                 </div>
 

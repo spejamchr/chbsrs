@@ -14,7 +14,7 @@ where
         <div class="value">
             {move || value().map(move |v| view! {
                 {title}
-                <code title={base_title}>{v}<sub>{base}</sub></code>
+                <code title={base_title}>{v}" "<sub>{base}</sub></code>
             }).unwrap_or_else(move |e| view! {
                 <>{e}</>
             })}

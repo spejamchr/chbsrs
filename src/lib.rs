@@ -23,7 +23,7 @@ pub fn App() -> impl IntoView {
         <Html lang="en" dir="ltr" attr:data-theme="light"/>
 
         // sets the document title
-        <Title text="Changes Bases;"/>
+        <Title text="ChangeBase"/>
 
         // injects metadata in the <head> of the page
         <Meta charset="UTF-8"/>

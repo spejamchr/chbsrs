@@ -1,20 +1,22 @@
+use bigdecimal::BigDecimal;
 use leptos::{html::*, *};
 
-use crate::bases::rep_to_digit_exponent_pairs;
+use crate::bases::{pow, rep_to_digit_exponent_pairs};
 
-pub fn content<F, G>(output: F, base: Signal<f64>, close: G) -> impl IntoView
+pub fn content<G>(output: Memo<String>, base: Signal<BigDecimal>, close: G) -> impl IntoView
 where
-    F: 'static + Fn() -> String,
-    G: 'static + Fn() -> (),
+    G: Fn() + 'static,
 {
     let all_pairs = rep_to_digit_exponent_pairs(&output());
 
-    let digit_exponent_pairs: Vec<_> = rep_to_digit_exponent_pairs(&output())
-        .into_iter()
-        .take(5)
-        .collect();
+    let digit_exponent_pairs = create_memo(move |_| -> Vec<_> {
+        rep_to_digit_exponent_pairs(&output())
+            .into_iter()
+            .take(5)
+            .collect()
+    });
 
-    let needs_filler = all_pairs.len() > digit_exponent_pairs.len();
+    let needs_filler = all_pairs.len() > digit_exponent_pairs().len();
     let filler = move || match needs_filler {
         true => Some(
             td().child(span().classes("right-space").child("+"))
@@ -23,31 +25,31 @@ where
         false => None,
     };
 
-    let digit_to_value = |s| {
-        usize::from_str_radix(s, 10)
-            .or_else(|_| usize::from_str_radix(s, 36))
+    let digit_to_value = |s: String| {
+        u32::from_str_radix(&s, 10)
+            .or_else(|_| u32::from_str_radix(&s, 36))
             .unwrap()
     };
 
-    let digit_conversion = match base() > 10.0 {
+    let digit_conversion = match base() > BigDecimal::from(10) {
         true => Some(
             tr().child(td().classes("align-end").child(format!(
                 "Representing base-{} digits as base-10 numbers:",
                 base()
             )))
-            .child(
-                digit_exponent_pairs
-                    .iter()
+            .child(move || {
+                digit_exponent_pairs()
+                    .into_iter()
                     .map(|(c, i)| {
                         td().child(span().classes("red").child(digit_to_value(c)))
                             .child('(')
-                            .child(base())
-                            .child(sup().child(*i))
+                            .child(move || base().to_string())
+                            .child(sup().child(i))
                             .child(')')
                     })
                     .intersperse_with(|| td().child("+"))
-                    .collect_view(),
-            )
+                    .collect_view()
+            })
             .child(filler()),
         ),
         false => None,
@@ -65,7 +67,7 @@ where
                 .child(
                     thead().child(
                         tr().child(th().child("Step")).child(
-                            th().attr("colspan", digit_exponent_pairs.len() * 2)
+                            th().attr("colspan", move || digit_exponent_pairs().len() * 2)
                                 .child("Digits"),
                         ),
                     ),
@@ -77,22 +79,22 @@ where
                                 "Output value w/base-{} positioned values:",
                                 base()
                             )))
-                            .child(
-                                digit_exponent_pairs
-                                    .iter()
+                            .child(move || {
+                                digit_exponent_pairs()
+                                    .into_iter()
                                     .map(|(c, i)| {
                                         td().child(span().classes("red").child(match c.len() {
                                             1 => c.to_string(),
                                             _ => format!("[{c}]"),
                                         }))
                                         .child('(')
-                                        .child(base())
-                                        .child(sup().child(*i))
+                                        .child(move || base().to_string())
+                                        .child(sup().child(i))
                                         .child(')')
                                     })
                                     .intersperse_with(|| td().child("+"))
-                                    .collect_view(),
-                            )
+                                    .collect_view()
+                            })
                             .child(filler()),
                         )
                         .child(digit_conversion)
@@ -101,35 +103,37 @@ where
                                 td().classes("align-end")
                                     .child(format!("Evaluating the exponents on the base:")),
                             )
-                            .child(
-                                digit_exponent_pairs
-                                    .iter()
+                            .child(move || {
+                                digit_exponent_pairs()
+                                    .into_iter()
                                     .map(|(c, i)| {
                                         td().child(span().child(digit_to_value(c)))
                                             .child('(')
                                             .child(
-                                                span().classes("red").child(base().powi(*i as i32)),
+                                                span()
+                                                    .classes("red")
+                                                    .child(move || pow(&base(), i).to_string()),
                                             )
                                             .child(')')
                                     })
                                     .intersperse_with(|| td().child("+"))
-                                    .collect_view(),
-                            )
+                                    .collect_view()
+                            })
                             .child(filler()),
                         )
                         .child(
                             tr().child(td().classes("align-end").child(format!("Multiplying:")))
-                                .child(
-                                    digit_exponent_pairs
-                                        .iter()
+                                .child(move || {
+                                    digit_exponent_pairs()
+                                        .into_iter()
                                         .map(|(c, i)| {
                                             td().child(span().classes("red").child(
-                                                digit_to_value(c) as f64 * base().powi(*i as i32),
+                                                (pow(&base(), i) * digit_to_value(c)).to_string(),
                                             ))
                                         })
                                         .intersperse_with(|| td().child("+"))
-                                        .collect_view(),
-                                )
+                                        .collect_view()
+                                })
                                 .child(filler()),
                         ),
                 )
@@ -141,19 +145,17 @@ where
                         )
                         .child(
                             th().attr("align", "left")
-                                .attr("colspan", digit_exponent_pairs.len() * 2)
+                                .attr("colspan", move || digit_exponent_pairs().len() * 2)
                                 .child(
                                     span()
                                         .classes("red")
-                                        .child(
-                                            digit_exponent_pairs
-                                                .iter()
-                                                .map(|(c, i)| {
-                                                    digit_to_value(c) as f64
-                                                        * base().powi(*i as i32)
-                                                })
-                                                .sum::<f64>(),
-                                        )
+                                        .child(move || {
+                                            digit_exponent_pairs()
+                                                .into_iter()
+                                                .map(|(c, i)| pow(&base(), i) * digit_to_value(c))
+                                                .sum::<BigDecimal>()
+                                                .to_string()
+                                        })
                                         .child(match needs_filler {
                                             true => Some(" + ..."),
                                             false => None,

@@ -1,33 +1,55 @@
 use std::collections::HashMap;
 
-fn base_digits_to_val(digits: &str, base: f64) -> Result<f64, String> {
-    let digit_to_val: HashMap<char, f64> = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+use bigdecimal::{BigDecimal, ToPrimitive};
+
+pub fn pow(base: &BigDecimal, exp: isize) -> BigDecimal {
+    match exp {
+        0 => bigdecimal::One::one(),
+        1 => base.clone(),
+        2 => base * base,
+        3 => base * base * base,
+        n if n < 0 => pow(base, -exp).inverse(),
+        n if n % 2 == 0 => pow(&(base * base), n / 2),
+        n => base * pow(base, n - 1),
+    }
+}
+
+fn floor(num: &BigDecimal) -> BigDecimal {
+    num.with_scale_round(0, bigdecimal::RoundingMode::Floor)
+}
+
+fn ceil(num: &BigDecimal) -> BigDecimal {
+    num.with_scale_round(0, bigdecimal::RoundingMode::Ceiling)
+}
+
+fn base_digits_to_val(digits: &str, base: &BigDecimal) -> Result<BigDecimal, String> {
+    let digit_to_val: HashMap<char, BigDecimal> = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"
         .chars()
-        .take(base.ceil() as usize)
+        .take(ceil(base).to_usize().unwrap_or(36))
         .enumerate()
-        .map(|(i, c)| (c, i as f64))
+        .map(|(i, c)| (c, BigDecimal::from(i as u8)))
         .collect();
 
     digits
         .chars()
         .rev()
         .enumerate()
-        .fold(Ok(0.0), |acc, (i, char)| {
+        .fold(Ok(bigdecimal::Zero::zero()), |acc, (i, char)| {
             acc.and_then(|sum| {
                 digit_to_val
                     .get(&char.to_uppercase().next().unwrap_or(' '))
-                    .and_then(|int| i.try_into().ok().map(|exp| sum + int * base.powi(exp)))
+                    .and_then(|int| i.try_into().ok().map(|exp| sum + int * pow(&base, exp)))
                     .ok_or_else(|| format!("Unrecognized digit in input: {char}"))
             })
         })
 }
 
-pub fn val_from_base(input: &str, base: f64) -> Result<f64, String> {
-    if base <= 1.0 {
+pub fn val_from_base(input: &str, base: &BigDecimal) -> Result<BigDecimal, String> {
+    if base <= &bigdecimal::One::one() {
         return Err("Input base must be greater than 1".to_string());
     }
     match input.split('.').collect::<Vec<_>>()[..] {
-        [] => Ok(0.0),
+        [] => Ok(bigdecimal::Zero::zero()),
         [positive] => base_digits_to_val(positive, base),
         [positive, negative] => base_digits_to_val(positive, base).and_then(|integer| {
             base_digits_to_val(negative, base).and_then(|fractional| {
@@ -35,7 +57,7 @@ pub fn val_from_base(input: &str, base: f64) -> Result<f64, String> {
                     .chars()
                     .count()
                     .try_into()
-                    .map(|exp| integer + fractional / (base.powi(exp)))
+                    .map(|exp| integer + fractional / (pow(base, exp)))
                     .map_err(|e| e.to_string())
             })
         }),
@@ -50,30 +72,36 @@ fn digit_to_str(digit: usize) -> String {
         .unwrap_or_else(|| format!("[{digit}]"))
 }
 
-pub fn val_to_base(mut value: f64, base: f64) -> Result<String, String> {
-    if base <= 1.0 {
+pub fn val_to_base(value: &BigDecimal, base: &BigDecimal) -> Result<String, String> {
+    let mut value = value.clone();
+    if base <= &bigdecimal::One::one() {
         return Err("Output base must be greater than 1".to_string());
     }
-    if value == 0.0 {
+    if value == bigdecimal::Zero::zero() {
         return Ok("0".to_owned());
     }
 
-    let mut exp: i32 = (value.ln() / base.ln()).floor().max(0.0) as i32;
-    exp += 1;
-    if ((value / base.powi(exp)) % base).floor() == 0.0 {
+    let mut exp = 0;
+    while pow(base, exp) < value {
+        exp += 1;
+    }
+    while exp > bigdecimal::Zero::zero()
+        && floor(&((value.clone() / pow(base, exp)) % base)) == bigdecimal::Zero::zero()
+    {
         exp -= 1;
     }
     let mut output = String::from("");
     let precision = -10;
 
-    while (value.abs() > base.powi(precision) || exp >= 0) && exp > precision {
-        let position = base.powi(exp);
-        let digit = ((value / position) % base).floor();
-        value -= digit * position;
+    while (value.abs() > pow(base, precision) || exp >= 0) && exp > precision {
+        let position = pow(base, exp);
+        let digit = floor(&((value.clone() / position.clone()) % base));
+        value -= digit.clone() * position.clone();
         if exp == -1 {
             output.push('.')
         }
-        output.push_str(&digit_to_str(digit as usize));
+        let dusize = digit.to_usize().unwrap();
+        output.push_str(&digit_to_str(dusize));
         exp -= 1;
     }
 

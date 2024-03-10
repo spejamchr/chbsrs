@@ -1,3 +1,6 @@
+use std::str::FromStr;
+
+use bigdecimal::BigDecimal;
 use leptos::*;
 
 use crate::{
@@ -8,17 +11,17 @@ use crate::{
 /// Default Home Page
 #[component]
 pub fn Home() -> impl IntoView {
-    let (input_string, set_input_string) = create_signal("11EE4E7C6FF3A6".to_string());
-    let (input_base, set_input_base) = create_signal(16.0);
-    let (output_base, set_output_base) = create_signal(42.0);
+    let (input_string, set_input_string) = create_signal("0.03".to_string());
+    let (input_base, set_input_base) = create_signal(BigDecimal::from_str("10.1").unwrap());
+    let (output_base, set_output_base) = create_signal(BigDecimal::from_str("10.1").unwrap());
 
-    let result_value = create_memo(move |_| val_from_base(&input_string(), input_base()));
+    let result_value = create_memo(move |_| val_from_base(&input_string(), &input_base()));
 
     let string_value = create_memo(move |_| result_value().map(|v| v.to_string()));
     let output_representation = create_memo(move |_| {
         result_value()
             .map_err(|_| "".to_string())
-            .and_then(|v| val_to_base(v, output_base()))
+            .and_then(|v| val_to_base(&v, &output_base()))
     });
 
     view! {

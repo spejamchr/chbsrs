@@ -20,7 +20,7 @@ where
     let filler = move || match needs_filler {
         true => Some(
             td().child(span().classes("right-space").child("+"))
-                .child(span().child("...")),
+                .child(span().child("…")),
         ),
         false => None,
     };
@@ -157,7 +157,7 @@ where
                                                 .to_string()
                                         })
                                         .child(match needs_filler {
-                                            true => Some(" + ..."),
+                                            true => Some(" + …"),
                                             false => None,
                                         }),
                                 ),

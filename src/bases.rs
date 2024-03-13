@@ -91,9 +91,13 @@ pub fn val_to_base(value: &BigDecimal, base: &BigDecimal) -> Result<String, Stri
         exp -= 1;
     }
     let mut output = String::from("");
-    let precision = -10;
+    let precision = -8;
 
-    while (value.abs() > pow(base, precision) || exp >= 0) && exp > precision {
+    while (value.abs() > pow(base, precision) || exp >= 0) && exp >= precision {
+        if exp == precision {
+            output.push_str("…");
+            return Ok(output);
+        }
         let position = pow(base, exp);
         let digit = floor(&((value.clone() / position.clone()) % base));
         value -= digit.clone() * position.clone();

@@ -119,12 +119,11 @@ where
 {
     move |ev| {
         let s = event_target_value(&ev);
-        match BigDecimal::from_str(&s)
+        if let Some(n) = BigDecimal::from_str(&s)
             .ok()
             .or_else(|| val_from_popular_strings(&s))
         {
-            Some(n) => setter(n),
-            None => (),
+            setter(n)
         }
     }
 }

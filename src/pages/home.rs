@@ -5,7 +5,9 @@ use leptos::*;
 
 use crate::{
     bases::{val_from_base, val_to_base},
-    components::{home_inputs::HomeInputs, output_details::OutputDetails},
+    components::{
+        home_inputs::HomeInputs, output_details::OutputDetails, value_in_base::rounded_string,
+    },
 };
 
 /// Default Home Page
@@ -17,7 +19,7 @@ pub fn Home() -> impl IntoView {
 
     let result_value = create_memo(move |_| val_from_base(&input_string(), &input_base()));
 
-    let string_value = create_memo(move |_| result_value().map(|v| v.to_string()));
+    let string_value = create_memo(move |_| result_value().map(|v| rounded_string(v)));
     let output_representation = create_memo(move |_| {
         result_value()
             .map_err(|_| "".to_string())

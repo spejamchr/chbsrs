@@ -5,7 +5,7 @@ pub fn rounded_string(num: BigDecimal) -> String {
     let limit = 8;
     let (_, scale) = num.as_bigint_and_exponent();
     if scale > limit {
-        format!("{}…", num.with_scale(limit))
+        format!("{}…", num.with_scale(limit)) // ellide
     } else {
         num.to_string()
     }

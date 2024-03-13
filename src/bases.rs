@@ -95,7 +95,7 @@ pub fn val_to_base(value: &BigDecimal, base: &BigDecimal) -> Result<String, Stri
 
     while (value.abs() > pow(base, precision) || exp >= 0) && exp >= precision {
         if exp == precision {
-            output.push_str("…");
+            output.push_str("…"); // ellide
             return Ok(output);
         }
         let position = pow(base, exp);

@@ -1,7 +1,7 @@
 use bigdecimal::BigDecimal;
 use leptos::{html::*, *};
 
-use crate::bases::{pow, rep_to_digit_exponent_pairs};
+use crate::bases::{pow, rep_to_digit_exponent_pairs, rounded_string};
 
 pub fn content<G>(output: Memo<String>, base: Signal<BigDecimal>, close: G) -> impl IntoView
 where
@@ -57,7 +57,7 @@ where
                 .on(ev::click, move |_| close())
                 .child("Close Details"),
         )
-        .child(p().child("The output value (changes in red) can be converted to base-10:"))
+        .child(p().child("The output value can be converted to base-10:"))
         .child(
             table()
                 .child(
@@ -105,11 +105,9 @@ where
                                     .map(|(c, i)| {
                                         td().child(span().child(digit_to_value(c)))
                                             .child('(')
-                                            .child(
-                                                span()
-                                                    .classes("red")
-                                                    .child(move || pow(&base(), i).to_string()),
-                                            )
+                                            .child(span().classes("red").child(move || {
+                                                rounded_string(pow(&base(), i), Some(8))
+                                            }))
                                             .child(')')
                                     })
                                     .intersperse_with(|| td().child("+"))
@@ -118,14 +116,15 @@ where
                             .child(filler()),
                         )
                         .child(
-                            tr().child(td().classes("align-end").child("Multiplying:"))
+                            tr().child(td().classes("align-end").child("Multiplying to get:"))
                                 .child(move || {
                                     digit_exponent_pairs()
                                         .into_iter()
                                         .map(|(c, i)| {
-                                            td().child(span().classes("red").child(
-                                                (pow(&base(), i) * digit_to_value(c)).to_string(),
-                                            ))
+                                            td().child(span().classes("red").child(rounded_string(
+                                                pow(&base(), i) * digit_to_value(c),
+                                                Some(8),
+                                            )))
                                         })
                                         .intersperse_with(|| td().child("+"))
                                         .collect_view()
@@ -143,13 +142,15 @@ where
                                         span()
                                             .classes("red")
                                             .child(move || {
-                                                digit_exponent_pairs()
-                                                    .into_iter()
-                                                    .map(|(c, i)| {
-                                                        pow(&base(), i) * digit_to_value(c)
-                                                    })
-                                                    .sum::<BigDecimal>()
-                                                    .to_string()
+                                                rounded_string(
+                                                    digit_exponent_pairs()
+                                                        .into_iter()
+                                                        .map(|(c, i)| {
+                                                            pow(&base(), i) * digit_to_value(c)
+                                                        })
+                                                        .sum::<BigDecimal>(),
+                                                    None,
+                                                )
                                             })
                                             .child(match needs_filler {
                                                 true => Some(" + …"), // ellide

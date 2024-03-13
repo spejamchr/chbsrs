@@ -2,6 +2,23 @@ use std::collections::HashMap;
 
 use bigdecimal::{BigDecimal, ToPrimitive};
 
+pub fn rounded_string(num: BigDecimal, hard_limit: Option<u64>) -> String {
+    if let Some(hl) = hard_limit {
+        if hl < num.digits() {
+            return num.with_prec(hl).to_scientific_notation();
+        }
+    }
+    let limit = 8;
+    let (_, scale) = num.as_bigint_and_exponent();
+    if scale > limit {
+        format!("{}…", num.with_scale(limit)) // ellide
+    } else {
+        num.to_usize()
+            .map(|n| n.to_string())
+            .unwrap_or_else(|| num.to_string())
+    }
+}
+
 pub fn pow(base: &BigDecimal, exp: isize) -> BigDecimal {
     match exp {
         0 => bigdecimal::One::one(),
@@ -98,7 +115,7 @@ pub fn val_to_base(value: &BigDecimal, base: &BigDecimal) -> Result<String, Stri
         power = power / base;
     }
     let mut output = String::from("");
-    let precision = -8;
+    let precision = -9;
     let most_precise = pow(base, precision * 2);
 
     while (value.abs() > most_precise || exp >= 0) && exp >= precision {

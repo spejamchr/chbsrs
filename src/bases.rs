@@ -92,8 +92,9 @@ pub fn val_to_base(value: &BigDecimal, base: &BigDecimal) -> Result<String, Stri
     }
     let mut output = String::from("");
     let precision = -8;
+    let most_precise = pow(base, precision * 2);
 
-    while (value.abs() > pow(base, precision) || exp >= 0) && exp >= precision {
+    while (value.abs() > most_precise || exp >= 0) && exp >= precision {
         if exp == precision {
             output.push_str("…"); // ellide
             return Ok(output);

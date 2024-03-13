@@ -13,9 +13,9 @@ use crate::{
 /// Default Home Page
 #[component]
 pub fn Home() -> impl IntoView {
-    let (input_string, set_input_string) = create_signal("0.03".to_string());
-    let (input_base, set_input_base) = create_signal(BigDecimal::from_str("10.1").unwrap());
-    let (output_base, set_output_base) = create_signal(BigDecimal::from_str("10.1").unwrap());
+    let (input_string, set_input_string) = create_signal("3".to_string());
+    let (input_base, set_input_base) = create_signal(BigDecimal::from_str("10.3").unwrap());
+    let (output_base, set_output_base) = create_signal(BigDecimal::from_str("10.3").unwrap());
 
     let result_value = create_memo(move |_| val_from_base(&input_string(), &input_base()));
 

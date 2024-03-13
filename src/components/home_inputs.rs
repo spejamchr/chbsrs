@@ -82,6 +82,9 @@ fn val_from_popular_strings(s: &str) -> Option<BigDecimal> {
         "pi" => Some(
             BigDecimal::from_str("3.14159265358979323846264338327950288419716939937510").unwrap(),
         ),
+        "π" => Some(
+            BigDecimal::from_str("3.14159265358979323846264338327950288419716939937510").unwrap(),
+        ),
         "e" => Some(
             BigDecimal::from_str("2.71828182845904523536028747135266249775724709369995").unwrap(),
         ),

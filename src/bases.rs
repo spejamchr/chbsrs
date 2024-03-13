@@ -228,19 +228,19 @@ mod tests {
     #[test]
     fn show_small_value_in_base_10() {
         let string = val_to_base(
-            &BigDecimal::from_str("0.0000001").unwrap(),
+            &BigDecimal::from_str("0.00000001").unwrap(),
             &BigDecimal::from(10),
         );
-        assert_eq!(Ok("0.0000001".to_owned()), string);
+        assert_eq!(Ok("0.00000001".to_owned()), string);
     }
 
     #[test]
     fn elide_smaller_value_in_base_10() {
         let string = val_to_base(
-            &BigDecimal::from_str("0.00000001").unwrap(),
+            &BigDecimal::from_str("0.000000001").unwrap(),
             &BigDecimal::from(10),
         );
-        assert_eq!(Ok("0.0000000…".to_owned()), string);
+        assert_eq!(Ok("0.00000000…".to_owned()), string);
     }
 
     #[test]

@@ -25,11 +25,7 @@ where
         false => None,
     };
 
-    let digit_to_value = |s: String| {
-        u32::from_str_radix(&s, 10)
-            .or_else(|_| u32::from_str_radix(&s, 36))
-            .unwrap()
-    };
+    let digit_to_value = |s: String| s.parse().or_else(|_| u32::from_str_radix(&s, 36)).unwrap();
 
     let digit_conversion = match base() > BigDecimal::from(10) {
         true => Some(
@@ -101,7 +97,7 @@ where
                         .child(
                             tr().child(
                                 td().classes("align-end")
-                                    .child(format!("Evaluating the exponents on the base:")),
+                                    .child("Evaluating the exponents on the base:"),
                             )
                             .child(move || {
                                 digit_exponent_pairs()
@@ -122,7 +118,7 @@ where
                             .child(filler()),
                         )
                         .child(
-                            tr().child(td().classes("align-end").child(format!("Multiplying:")))
+                            tr().child(td().classes("align-end").child("Multiplying:"))
                                 .child(move || {
                                     digit_exponent_pairs()
                                         .into_iter()
@@ -139,29 +135,28 @@ where
                 )
                 .child(
                     tfoot().child(
-                        tr().child(
-                            th().classes("align-end")
-                                .child(format!("Adding everything:")),
-                        )
-                        .child(
-                            th().attr("align", "left")
-                                .attr("colspan", move || digit_exponent_pairs().len() * 2)
-                                .child(
-                                    span()
-                                        .classes("red")
-                                        .child(move || {
-                                            digit_exponent_pairs()
-                                                .into_iter()
-                                                .map(|(c, i)| pow(&base(), i) * digit_to_value(c))
-                                                .sum::<BigDecimal>()
-                                                .to_string()
-                                        })
-                                        .child(match needs_filler {
-                                            true => Some(" + …"), // ellide
-                                            false => None,
-                                        }),
-                                ),
-                        ),
+                        tr().child(th().classes("align-end").child("Adding everything:"))
+                            .child(
+                                th().attr("align", "left")
+                                    .attr("colspan", move || digit_exponent_pairs().len() * 2)
+                                    .child(
+                                        span()
+                                            .classes("red")
+                                            .child(move || {
+                                                digit_exponent_pairs()
+                                                    .into_iter()
+                                                    .map(|(c, i)| {
+                                                        pow(&base(), i) * digit_to_value(c)
+                                                    })
+                                                    .sum::<BigDecimal>()
+                                                    .to_string()
+                                            })
+                                            .child(match needs_filler {
+                                                true => Some(" + …"), // ellide
+                                                false => None,
+                                            }),
+                                    ),
+                            ),
                     ),
                 ),
         )

@@ -140,3 +140,75 @@ pub fn rep_to_digit_exponent_pairs(rep: &str) -> Vec<(String, isize)> {
         .zip((-max_exp..).map(|i| -i))
         .collect()
 }
+
+#[cfg(test)]
+mod tests {
+    use std::str::FromStr;
+
+    use super::*;
+
+    #[test]
+    fn base10_conversion() {
+        let decimal = val_from_base("12345", &BigDecimal::from(10)).unwrap();
+        assert_eq!(
+            BigDecimal::from(12345).round(20).to_string(),
+            decimal.round(20).to_string()
+        );
+    }
+
+    #[test]
+    fn fails_with_base1() {
+        let decimal = val_from_base("12345", &BigDecimal::from(1));
+        assert!(decimal.is_err());
+    }
+
+    #[test]
+    fn fails_with_multiple_periods() {
+        let decimal = val_from_base("12.34.5", &BigDecimal::from(10));
+        assert!(decimal.is_err());
+    }
+
+    #[test]
+    fn parses_1_plus_sqrt2_from_base_sqrt2() {
+        let decimal = val_from_base("11", &BigDecimal::from(2).sqrt().unwrap());
+        assert_eq!(
+            (BigDecimal::from(2).sqrt().unwrap() + 1_u32)
+                .round(20)
+                .to_string(),
+            decimal.unwrap().round(20).to_string()
+        );
+    }
+
+    #[test]
+    fn parses_3_from_base_sqrt2() {
+        let decimal = val_from_base("101", &BigDecimal::from(2).sqrt().unwrap());
+        assert_eq!(
+            (BigDecimal::from(3)).round(20).to_string(),
+            decimal.unwrap().round(20).to_string()
+        );
+    }
+
+    #[test]
+    fn show_2_in_base_10() {
+        let string = val_to_base(&BigDecimal::from(2), &BigDecimal::from(10));
+        assert_eq!(Ok("2".to_owned()), string);
+    }
+
+    #[test]
+    fn show_small_value_in_base_10() {
+        let string = val_to_base(
+            &BigDecimal::from_str("0.0000001").unwrap(),
+            &BigDecimal::from(10),
+        );
+        assert_eq!(Ok("0.0000001".to_owned()), string);
+    }
+
+    #[test]
+    fn elide_smaller_value_in_base_10() {
+        let string = val_to_base(
+            &BigDecimal::from_str("0.00000001").unwrap(),
+            &BigDecimal::from(10),
+        );
+        assert_eq!(Ok("0.0000000…".to_owned()), string);
+    }
+}

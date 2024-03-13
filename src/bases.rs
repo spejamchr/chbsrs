@@ -6,10 +6,10 @@ pub fn pow(base: &BigDecimal, exp: isize) -> BigDecimal {
     match exp {
         0 => bigdecimal::One::one(),
         1 => base.clone(),
-        2 => base * base,
-        3 => base * base * base,
+        2 => base.square().round(50).normalized(),
+        3 => base * base.square().round(50).normalized(),
         n if n < 0 => pow(base, -exp).inverse(),
-        n if n % 2 == 0 => pow(&(base * base), n / 2),
+        n if n % 2 == 0 => pow(&(base.square().round(50).normalized()), n / 2),
         n => base * pow(base, n - 1),
     }
 }
@@ -30,18 +30,18 @@ fn base_digits_to_val(digits: &str, base: &BigDecimal) -> Result<BigDecimal, Str
         .map(|(i, c)| (c, BigDecimal::from(i as u8)))
         .collect();
 
+    let mut power = base.inverse();
     digits
         .chars()
         .rev()
-        .enumerate()
-        .fold(Ok(bigdecimal::Zero::zero()), |acc, (i, char)| {
-            acc.and_then(|sum| {
-                digit_to_val
-                    .get(&char.to_uppercase().next().unwrap_or(' '))
-                    .and_then(|int| i.try_into().ok().map(|exp| sum + int * pow(&base, exp)))
-                    .ok_or_else(|| format!("Unrecognized digit in input: {char}"))
-            })
+        .try_fold(bigdecimal::Zero::zero(), |sum: BigDecimal, char| {
+            power *= base;
+            match digit_to_val.get(&char.to_uppercase().next().unwrap_or(' ')) {
+                Some(int) => Ok(sum + int * power.clone()),
+                None => Err(format!("Unrecognized digit in input: {char}")),
+            }
         })
+        .map(|n| n.round(32).normalized())
 }
 
 pub fn val_from_base(input: &str, base: &BigDecimal) -> Result<BigDecimal, String> {
@@ -66,10 +66,14 @@ pub fn val_from_base(input: &str, base: &BigDecimal) -> Result<BigDecimal, Strin
 }
 
 fn digit_to_str(digit: usize) -> String {
-    "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-        .get(digit..digit + 1)
-        .map(|s| s.to_string())
-        .unwrap_or_else(|| format!("[{digit}]"))
+    static DIGITS: [&str; 36] = [
+        "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "A", "B", "C", "D", "E", "F", "G", "H",
+        "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z",
+    ];
+    match DIGITS.get(digit) {
+        Some(s) => s.to_string(),
+        None => format!("[{digit}]"),
+    }
 }
 
 pub fn val_to_base(value: &BigDecimal, base: &BigDecimal) -> Result<String, String> {
@@ -82,13 +86,16 @@ pub fn val_to_base(value: &BigDecimal, base: &BigDecimal) -> Result<String, Stri
     }
 
     let mut exp = 0;
-    while pow(base, exp) < value {
+    let mut power = BigDecimal::from(1);
+    while power < value {
         exp += 1;
+        power *= base;
     }
     while exp > bigdecimal::Zero::zero()
-        && floor(&((value.clone() / pow(base, exp)) % base)) == bigdecimal::Zero::zero()
+        && floor(&((value.clone() / power.clone()) % base)) == bigdecimal::Zero::zero()
     {
         exp -= 1;
+        power = power / base;
     }
     let mut output = String::from("");
     let precision = -8;
@@ -96,21 +103,21 @@ pub fn val_to_base(value: &BigDecimal, base: &BigDecimal) -> Result<String, Stri
 
     while (value.abs() > most_precise || exp >= 0) && exp >= precision {
         if exp == precision {
-            output.push_str("…"); // ellide
+            output.push('…'); // ellide
             return Ok(output);
         }
-        let position = pow(base, exp);
-        let digit = floor(&((value.clone() / position.clone()) % base));
-        value -= digit.clone() * position.clone();
+        let digit = floor(&((value.clone() / power.clone()) % base));
+        value -= digit.clone() * power.clone();
         if exp == -1 {
             output.push('.')
         }
         let dusize = digit.to_usize().unwrap();
         output.push_str(&digit_to_str(dusize));
         exp -= 1;
+        power = power / base;
     }
 
-    return Ok(output);
+    Ok(output)
 }
 
 pub fn rep_to_digit_exponent_pairs(rep: &str) -> Vec<(String, isize)> {
@@ -151,10 +158,7 @@ mod tests {
     #[test]
     fn base10_conversion() {
         let decimal = val_from_base("12345", &BigDecimal::from(10)).unwrap();
-        assert_eq!(
-            BigDecimal::from(12345).round(20).to_string(),
-            decimal.round(20).to_string()
-        );
+        assert_eq!(BigDecimal::from(12345).to_string(), decimal.to_string());
     }
 
     #[test]
@@ -193,8 +197,8 @@ mod tests {
     fn parses_3_from_base_10_3() {
         let decimal = val_from_base("3", &BigDecimal::from_str("10.3").unwrap());
         assert_eq!(
-            (BigDecimal::from(3)).round(20).to_string(),
-            decimal.unwrap().round(20).to_string()
+            (BigDecimal::from(3)).to_string(),
+            decimal.unwrap().to_string()
         );
     }
 

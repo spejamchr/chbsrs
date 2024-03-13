@@ -212,4 +212,10 @@ mod tests {
         );
         assert_eq!(Ok("0.0000000…".to_owned()), string);
     }
+
+    #[test]
+    fn round_parsing_correctly() {
+        let string = val_to_base(&BigDecimal::from(3), &BigDecimal::from_str("10.3").unwrap());
+        assert_eq!(Ok("3".to_owned()), string);
+    }
 }

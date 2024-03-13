@@ -190,6 +190,15 @@ mod tests {
     }
 
     #[test]
+    fn parses_3_from_base_10_3() {
+        let decimal = val_from_base("3", &BigDecimal::from_str("10.3").unwrap());
+        assert_eq!(
+            (BigDecimal::from(3)).round(20).to_string(),
+            decimal.unwrap().round(20).to_string()
+        );
+    }
+
+    #[test]
     fn show_2_in_base_10() {
         let string = val_to_base(&BigDecimal::from(2), &BigDecimal::from(10));
         assert_eq!(Ok("2".to_owned()), string);

@@ -1,5 +1,3 @@
-use std::collections::HashMap;
-
 use bigdecimal::{BigDecimal, ToPrimitive};
 
 pub fn rounded_string(num: BigDecimal, hard_limit: Option<u64>) -> String {
@@ -39,27 +37,16 @@ fn floor(num: &BigDecimal) -> BigDecimal {
     num.with_scale_round(0, bigdecimal::RoundingMode::Floor)
 }
 
-fn ceil(num: &BigDecimal) -> BigDecimal {
-    num.with_scale_round(0, bigdecimal::RoundingMode::Ceiling)
-}
-
 fn base_digits_to_val(digits: &str, base: &BigDecimal) -> Result<BigDecimal, String> {
-    let digit_to_val: HashMap<char, BigDecimal> = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-        .chars()
-        .take(ceil(base).to_usize().unwrap_or(36))
-        .enumerate()
-        .map(|(i, c)| (c, BigDecimal::from(i as u8)))
-        .collect();
-
     let mut power = base.inverse();
-    digits
-        .chars()
+    rep_to_digit_exponent_pairs(digits)
+        .into_iter()
         .rev()
-        .try_fold(bigdecimal::Zero::zero(), |sum: BigDecimal, char| {
+        .try_fold(bigdecimal::Zero::zero(), |sum: BigDecimal, (char, _)| {
             power *= base;
-            match digit_to_val.get(&char.to_uppercase().next().unwrap_or(' ')) {
-                Some(int) => Ok(sum + int * power.clone()),
-                None => Err(format!("Unrecognized digit in input: {char}")),
+            match char.parse().or_else(|_| u32::from_str_radix(&char, 36)) {
+                Ok(int) => Ok(sum + int * power.clone()),
+                Err(_) => Err(format!("Unrecognized digit in input: {char}")),
             }
         })
         .map(|n| n.round(32).normalized())
@@ -159,9 +146,10 @@ pub fn rep_to_digit_exponent_pairs(rep: &str) -> Vec<(String, isize)> {
         }
     }
 
-    let max_exp: isize = (digits.iter().take_while(|&c| c != ".").count() - 1)
-        .try_into()
-        .unwrap();
+    let max_exp: isize =
+        <usize as TryInto<isize>>::try_into(digits.iter().take_while(|&c| c != ".").count())
+            .unwrap()
+            - 1;
 
     digits
         .into_iter()
@@ -224,9 +212,24 @@ mod tests {
     }
 
     #[test]
+    fn parses_from_base_100() {
+        let decimal = val_from_base("[99]", &BigDecimal::from(100));
+        assert_eq!(
+            (BigDecimal::from(99)).to_string(),
+            decimal.unwrap().to_string()
+        );
+    }
+
+    #[test]
     fn parses_decimal() {
         let decimal = val_from_base("0.12345678", &BigDecimal::from_str("10").unwrap());
         assert_eq!("0.12345678".to_string(), decimal.unwrap().to_string());
+    }
+
+    #[test]
+    fn parses_decimal_without_leading_zero() {
+        let decimal = val_from_base(".1", &BigDecimal::from_str("10").unwrap());
+        assert_eq!("0.1".to_string(), decimal.unwrap().to_string());
     }
 
     #[test]

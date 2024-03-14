@@ -24,7 +24,7 @@ pub fn OutputDetails(
             div().child(content(create_memo(move |_| o.clone()), base, close))
         }
         (Ok(_), OpenState::Closed) => {
-            div().child(button().on(ev::click, open).child("Open Details"))
+            div().child(button().on(ev::click, open).child("Show Output Details"))
         }
         (Err(_), _) => div(),
     }

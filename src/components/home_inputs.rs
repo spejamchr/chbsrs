@@ -20,9 +20,13 @@ pub fn HomeInputs(
         table()
             .classes("inputs")
             .child(
-                thead().child(tr().child(th().child("Input Value:")).child(th().child(
-                    value_in_base(string_value, (|| BigDecimal::from(10)).into()),
-                ))),
+                thead().child(
+                    tr().child(th().child("Value in Base-10:"))
+                        .child(th().child(value_in_base(
+                            string_value,
+                            (|| BigDecimal::from(10)).into(),
+                        ))),
+                ),
             )
             .child(
                 tfoot().child(
@@ -34,12 +38,12 @@ pub fn HomeInputs(
                 tbody()
                     .child(
                         tr().child(
-                            td().child(label().attr("for", "InputString").child("Input String")),
+                            td().child(label().attr("for", "InputValue").child("Input Value")),
                         )
                         .child(
                             td().child(
                                 input()
-                                    .id("InputString")
+                                    .id("InputValue")
                                     .style("width", move || {
                                         format!("{}ch", input_string().chars().count().max(18) + 2)
                                     })
@@ -52,24 +56,32 @@ pub fn HomeInputs(
                         ),
                     )
                     .child(
-                        tr().child(td().child("Input Base")).child(
-                            td().child(
-                                input()
-                                    .attr("type", "text")
-                                    .attr("value", move || input_base().to_string())
-                                    .on(ev::input, update_base(set_input_base)),
+                        tr().attr("title", move || input_base().to_string())
+                            .child(td().child(label().attr("for", "InputBase").child("Input Base")))
+                            .child(
+                                td().child(
+                                    input()
+                                        .id("InputBase")
+                                        .attr("type", "text")
+                                        .attr("value", move || input_base().to_string())
+                                        .on(ev::input, update_base(set_input_base)),
+                                ),
                             ),
-                        ),
                     )
                     .child(
-                        tr().child(td().child("Output Base")).child(
-                            td().child(
-                                input()
-                                    .attr("type", "text")
-                                    .attr("value", move || output_base().to_string())
-                                    .on(ev::input, update_base(set_output_base)),
+                        tr().attr("title", move || output_base().to_string())
+                            .child(
+                                td().child(label().attr("for", "OutputBase").child("Output Base")),
+                            )
+                            .child(
+                                td().child(
+                                    input()
+                                        .id("OutputBase")
+                                        .attr("type", "text")
+                                        .attr("value", move || output_base().to_string())
+                                        .on(ev::input, update_base(set_output_base)),
+                                ),
                             ),
-                        ),
                     ),
             )
     }

@@ -49,8 +49,8 @@ body {
   box-sizing: content-box;
 }
 
-.red {
-  color: var(--blue-6);
+.highlight {
+  color: var(--blue-3);
   font-weight: bold;
 }
 

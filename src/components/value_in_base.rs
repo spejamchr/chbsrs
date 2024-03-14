@@ -9,7 +9,7 @@ pub fn value_in_base(val: Memo<Result<String, String>>, base: Signal<BigDecimal>
             Ok(v) => span().child(
                 code()
                     .attr("title", move || {
-                        format!("Base-{}", rounded_string(base(), None))
+                        format!("Value in Base-{}", rounded_string(base(), None))
                     })
                     .child(v)
                     .child(span().inner_html("&nbsp"))

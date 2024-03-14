@@ -32,14 +32,14 @@ where
     let digit_conversion = match base() > BigDecimal::from(10) {
         true => Some(
             tr().child(td().classes("align-end").child(format!(
-                "Representing base-{} digits as base-10 numbers:",
+                "Represent base-{} digits as base-10 numbers:",
                 rounded_string(base(), None)
             )))
             .child(move || {
                 digit_exponent_pairs()
                     .into_iter()
                     .map(|(c, i)| {
-                        td().child(span().classes("red").child(digit_to_value(c)))
+                        td().child(span().classes("highlight").child(digit_to_value(c)))
                             .child('(')
                             .child(move || rounded_string(base(), None))
                             .child(sup().child(i))
@@ -57,7 +57,7 @@ where
         .child(
             button()
                 .on(ev::click, move |_| close())
-                .child("Close Details"),
+                .child("Hide Output Details"),
         )
         .child(p().child("The output value can be converted to base-10:"))
         .child(
@@ -81,10 +81,12 @@ where
                                 digit_exponent_pairs()
                                     .into_iter()
                                     .map(|(c, i)| {
-                                        td().child(span().classes("red").child(match c.len() {
-                                            1 => c.to_string(),
-                                            _ => format!("[{c}]"),
-                                        }))
+                                        td().child(span().classes("highlight").child(
+                                            match c.len() {
+                                                1 => c.to_string(),
+                                                _ => format!("[{c}]"),
+                                            },
+                                        ))
                                         .child('(')
                                         .child(move || rounded_string(base(), None))
                                         .child(sup().child(i))
@@ -99,7 +101,7 @@ where
                         .child(
                             tr().child(
                                 td().classes("align-end")
-                                    .child("Evaluating the exponents on the base:"),
+                                    .child("Evaluate the exponents on the base:"),
                             )
                             .child(move || {
                                 digit_exponent_pairs()
@@ -107,7 +109,7 @@ where
                                     .map(|(c, i)| {
                                         td().child(span().child(digit_to_value(c)))
                                             .child('(')
-                                            .child(span().classes("red").child(move || {
+                                            .child(span().classes("highlight").child(move || {
                                                 rounded_string(pow(&base(), i), NonZeroU64::new(8))
                                             }))
                                             .child(')')
@@ -118,15 +120,17 @@ where
                             .child(filler()),
                         )
                         .child(
-                            tr().child(td().classes("align-end").child("Multiplying to get:"))
+                            tr().child(td().classes("align-end").child("Multiply to get:"))
                                 .child(move || {
                                     digit_exponent_pairs()
                                         .into_iter()
                                         .map(|(c, i)| {
-                                            td().child(span().classes("red").child(rounded_string(
-                                                pow(&base(), i) * digit_to_value(c),
-                                                NonZeroU64::new(8),
-                                            )))
+                                            td().child(span().classes("highlight").child(
+                                                rounded_string(
+                                                    pow(&base(), i) * digit_to_value(c),
+                                                    NonZeroU64::new(8),
+                                                ),
+                                            ))
                                         })
                                         .intersperse_with(|| td().child("+"))
                                         .collect_view()
@@ -142,7 +146,7 @@ where
                                     .attr("colspan", move || digit_exponent_pairs().len() * 2)
                                     .child(
                                         span()
-                                            .classes("red")
+                                            .classes("highlight")
                                             .child(move || {
                                                 rounded_string(
                                                     digit_exponent_pairs()

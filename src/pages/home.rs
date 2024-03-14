@@ -1,10 +1,7 @@
-use std::str::FromStr;
-
-use bigdecimal::BigDecimal;
 use leptos::{html::*, *};
 
 use crate::{
-    bases::{val_from_base, val_to_base},
+    bases::BaseConversion,
     components::{home_inputs::HomeInputs, output_details::OutputDetails},
 };
 
@@ -12,17 +9,16 @@ use crate::{
 #[component]
 pub fn Home() -> impl IntoView {
     let (input_string, set_input_string) = create_signal("123.45".to_string());
-    let (input_base, set_input_base) = create_signal(BigDecimal::from_str("10.3").unwrap());
-    let (output_base, set_output_base) = create_signal(BigDecimal::from_str("10.3").unwrap());
+    let (input_base_string, set_input_base_string) = create_signal(String::from("10"));
+    let (output_base_string, set_output_base_string) = create_signal(String::from("π"));
 
-    let result_value = create_memo(move |_| val_from_base(&input_string(), &input_base()));
-
-    let base10_representation =
-        create_memo(move |_| result_value().and_then(|v| val_to_base(&v, &BigDecimal::from(10))));
-    let output_representation = create_memo(move |_| {
-        result_value()
-            .map_err(|_| "".to_string())
-            .and_then(|v| val_to_base(&v, &output_base()))
+    let base_conversion = create_memo::<BaseConversion>(move |prev| {
+        BaseConversion::new_with_defaults(
+            input_string(),
+            input_base_string(),
+            output_base_string(),
+            prev,
+        )
     });
 
     let also_try = sub()
@@ -61,19 +57,15 @@ pub fn Home() -> impl IntoView {
                 <h1>"ChangeBase"</h1>
 
                 <HomeInputs
-                    base10_representation=base10_representation
-                    output_representation=output_representation
-                    input_string=input_string
+                    base_conversion=base_conversion
                     set_input_string=set_input_string
-                    input_base=input_base
-                    set_input_base=set_input_base
-                    output_base=output_base
-                    set_output_base=set_output_base
+                    set_input_base_string=set_input_base_string
+                    set_output_base_string=set_output_base_string
                 />
 
                 {also_try}
 
-                <OutputDetails output={output_representation} base={output_base}/>
+                <OutputDetails base_conversion=base_conversion />
 
             </div>
         </ErrorBoundary>

@@ -3,7 +3,7 @@ use leptos::{html::*, *};
 
 use crate::bases::rounded_string;
 
-pub fn value_in_base(val: Memo<Result<String, String>>, base: Signal<BigDecimal>) -> impl IntoView {
+pub fn value_in_base(val: Memo<Result<String, String>>, base: Memo<BigDecimal>) -> impl IntoView {
     move || {
         div().classes("value").child(match val() {
             Ok(v) => span().child(

@@ -1,6 +1,96 @@
-use std::num::NonZeroU64;
+use std::{num::NonZeroU64, str::FromStr};
 
 use bigdecimal::{BigDecimal, ToPrimitive};
+
+#[derive(PartialEq, Clone)]
+pub struct BaseConversion {
+    pub input_string: String,
+    pub input_base: BigDecimal,
+    pub input_base_string: String,
+    pub output_base: BigDecimal,
+    pub output_base_string: String,
+}
+
+static FALLBACK_INPUT_BASE: i32 = 10;
+static FALLBACK_OUTPUT_BASE: i32 = 10;
+
+impl BaseConversion {
+    pub fn new_with_defaults(
+        input_string: String,
+        input_base_string: String,
+        output_base_string: String,
+        base_conversion: Option<&Self>,
+    ) -> Self {
+        Self {
+            input_string,
+            input_base: BigDecimal::from_str(&input_base_string)
+                .or_else(|e| val_from_popular_strings(&input_base_string).ok_or(e))
+                .or_else(|e| base_conversion.map(|c| c.input_base.clone()).ok_or(e))
+                .unwrap_or_else(|_| BigDecimal::from(FALLBACK_INPUT_BASE)),
+            input_base_string,
+            output_base: BigDecimal::from_str(&output_base_string)
+                .or_else(|e| val_from_popular_strings(&output_base_string).ok_or(e))
+                .or_else(|e| base_conversion.map(|c| c.output_base.clone()).ok_or(e))
+                .unwrap_or_else(|_| BigDecimal::from(FALLBACK_OUTPUT_BASE)),
+            output_base_string,
+        }
+    }
+
+    fn base_10_value(&self) -> Result<BigDecimal, String> {
+        val_from_base(&self.input_string, &self.input_base)
+    }
+
+    pub fn base_10_string(&self) -> Result<String, String> {
+        self.base_10_value()
+            .and_then(|v| val_to_base(&v, &BigDecimal::from(10)))
+    }
+
+    pub fn output_string(&self) -> Result<String, String> {
+        self.base_10_value()
+            .and_then(|v| val_to_base(&v, &self.output_base))
+    }
+}
+
+fn val_from_popular_strings(s: &str) -> Option<BigDecimal> {
+    match s.to_lowercase().as_str() {
+        "phi" => Some((BigDecimal::from(5).sqrt().unwrap() + 1) / 2),
+        "φ" => Some((BigDecimal::from(5).sqrt().unwrap() + 1) / 2),
+        "pi" => Some(
+            BigDecimal::from_str("3.14159265358979323846264338327950288419716939937510").unwrap(),
+        ),
+        "π" => Some(
+            BigDecimal::from_str("3.14159265358979323846264338327950288419716939937510").unwrap(),
+        ),
+        "e" => Some(
+            BigDecimal::from_str("2.71828182845904523536028747135266249775724709369995").unwrap(),
+        ),
+        "sqrt2" => Some(BigDecimal::from(2).sqrt().unwrap()),
+        "two" => Some(BigDecimal::from(2)),
+        "binary" => Some(BigDecimal::from(2)),
+        "three" => Some(BigDecimal::from(3)),
+        "ternary" => Some(BigDecimal::from(3)),
+        "four" => Some(BigDecimal::from(4)),
+        "quaternary" => Some(BigDecimal::from(4)),
+        "five" => Some(BigDecimal::from(5)),
+        "quinary" => Some(BigDecimal::from(5)),
+        "six" => Some(BigDecimal::from(6)),
+        "senary" => Some(BigDecimal::from(6)),
+        "octal" => Some(BigDecimal::from(8)),
+        "eight" => Some(BigDecimal::from(8)),
+        "ten" => Some(BigDecimal::from(10)),
+        "decimal" => Some(BigDecimal::from(10)),
+        "twelve" => Some(BigDecimal::from(12)),
+        "duodecimal" => Some(BigDecimal::from(12)),
+        "dozenal" => Some(BigDecimal::from(12)),
+        "sixteen" => Some(BigDecimal::from(16)),
+        "hex" => Some(BigDecimal::from(16)),
+        "twenty" => Some(BigDecimal::from(20)),
+        "vigesimal" => Some(BigDecimal::from(20)),
+        "sixty" => Some(BigDecimal::from(60)),
+        "sexagesimal" => Some(BigDecimal::from(60)),
+        _ => None,
+    }
+}
 
 pub fn rounded_string(num: BigDecimal, hard_limit: Option<NonZeroU64>) -> String {
     if let Some(hl) = hard_limit {
@@ -61,7 +151,7 @@ fn base_digits_to_val(digits: &str, base: &BigDecimal) -> Result<BigDecimal, Str
         .map(|n| n.round(32).normalized())
 }
 
-pub fn val_from_base(input: &str, base: &BigDecimal) -> Result<BigDecimal, String> {
+fn val_from_base(input: &str, base: &BigDecimal) -> Result<BigDecimal, String> {
     if base <= &bigdecimal::One::one() {
         return Err("Input base must be greater than 1".to_string());
     }
@@ -82,7 +172,7 @@ pub fn val_from_base(input: &str, base: &BigDecimal) -> Result<BigDecimal, Strin
     }
 }
 
-fn digit_to_str(digit: usize) -> String {
+fn digit_to_string(digit: usize) -> String {
     static DIGITS: [&str; 36] = [
         "0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "A", "B", "C", "D", "E", "F", "G", "H",
         "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z",
@@ -93,7 +183,7 @@ fn digit_to_str(digit: usize) -> String {
     }
 }
 
-pub fn val_to_base(value: &BigDecimal, base: &BigDecimal) -> Result<String, String> {
+fn val_to_base(value: &BigDecimal, base: &BigDecimal) -> Result<String, String> {
     let mut value = value.clone();
     if base <= &bigdecimal::One::one() {
         return Err("Output base must be greater than 1".to_string());
@@ -129,7 +219,7 @@ pub fn val_to_base(value: &BigDecimal, base: &BigDecimal) -> Result<String, Stri
             output.push('.')
         }
         let dusize = digit.to_usize().unwrap();
-        output.push_str(&digit_to_str(dusize));
+        output.push_str(&digit_to_string(dusize));
         exp -= 1;
         power = power / base;
     }
@@ -169,8 +259,6 @@ pub fn rep_to_digit_exponent_pairs(rep: &str) -> Vec<(String, isize)> {
 
 #[cfg(test)]
 mod tests {
-    use std::str::FromStr;
-
     use super::*;
 
     #[test]

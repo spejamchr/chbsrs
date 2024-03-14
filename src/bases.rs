@@ -1,9 +1,18 @@
+use std::num::NonZeroU64;
+
 use bigdecimal::{BigDecimal, ToPrimitive};
 
-pub fn rounded_string(num: BigDecimal, hard_limit: Option<u64>) -> String {
+pub fn rounded_string(num: BigDecimal, hard_limit: Option<NonZeroU64>) -> String {
     if let Some(hl) = hard_limit {
-        if hl < num.digits() {
-            return num.with_prec(hl).to_scientific_notation();
+        if num.digits() > hl.get() {
+            let str = num
+                .with_precision_round(hl, bigdecimal::RoundingMode::Down)
+                .to_string();
+            if str.split("E").count() > 1 {
+                return str;
+            } else {
+                return format!("{}…", str); // ellide
+            }
         }
     }
     let limit = 8;
@@ -250,8 +259,38 @@ mod tests {
 
     #[test]
     fn round_large_integer() {
-        let decimal = rounded_string(pow(&BigDecimal::from(10), 10), Some(8));
+        let decimal = rounded_string(pow(&BigDecimal::from(10), 10), NonZeroU64::new(8));
         assert_eq!("1E+10".to_string(), decimal);
+    }
+
+    #[test]
+    fn round_1234567890123_with_limit() {
+        let decimal = rounded_string(
+            BigDecimal::from_str("1234567890123").unwrap(),
+            NonZeroU64::new(8),
+        );
+        assert_eq!("1.2345678E+12".to_string(), decimal);
+    }
+
+    #[test]
+    fn round_pi() {
+        let decimal = rounded_string(
+            BigDecimal::from_str("3.14159265358979323846264338327950288419716939937510").unwrap(),
+            NonZeroU64::new(8),
+        );
+        assert_eq!("3.1415926…".to_string(), decimal);
+    }
+
+    #[test]
+    fn round_fake_pi() {
+        let decimal = rounded_string(BigDecimal::from_str("3.14").unwrap(), NonZeroU64::new(8));
+        assert_eq!("3.14".to_string(), decimal);
+    }
+
+    #[test]
+    fn round_small_integer() {
+        let decimal = rounded_string(pow(&BigDecimal::from(10), 8), NonZeroU64::new(8));
+        assert_eq!("100000000".to_string(), decimal);
     }
 
     #[test]

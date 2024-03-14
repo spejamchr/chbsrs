@@ -1,3 +1,5 @@
+use std::num::NonZeroU64;
+
 use bigdecimal::BigDecimal;
 use leptos::{html::*, *};
 
@@ -31,7 +33,7 @@ where
         true => Some(
             tr().child(td().classes("align-end").child(format!(
                 "Representing base-{} digits as base-10 numbers:",
-                base()
+                rounded_string(base(), None)
             )))
             .child(move || {
                 digit_exponent_pairs()
@@ -39,7 +41,7 @@ where
                     .map(|(c, i)| {
                         td().child(span().classes("red").child(digit_to_value(c)))
                             .child('(')
-                            .child(move || base().to_string())
+                            .child(move || rounded_string(base(), None))
                             .child(sup().child(i))
                             .child(')')
                     })
@@ -73,7 +75,7 @@ where
                         .child(
                             tr().child(td().classes("align-end").child(format!(
                                 "Output value w/base-{} positioned values:",
-                                base()
+                                rounded_string(base(), None)
                             )))
                             .child(move || {
                                 digit_exponent_pairs()
@@ -84,7 +86,7 @@ where
                                             _ => format!("[{c}]"),
                                         }))
                                         .child('(')
-                                        .child(move || base().to_string())
+                                        .child(move || rounded_string(base(), None))
                                         .child(sup().child(i))
                                         .child(')')
                                     })
@@ -106,7 +108,7 @@ where
                                         td().child(span().child(digit_to_value(c)))
                                             .child('(')
                                             .child(span().classes("red").child(move || {
-                                                rounded_string(pow(&base(), i), Some(8))
+                                                rounded_string(pow(&base(), i), NonZeroU64::new(8))
                                             }))
                                             .child(')')
                                     })
@@ -123,7 +125,7 @@ where
                                         .map(|(c, i)| {
                                             td().child(span().classes("red").child(rounded_string(
                                                 pow(&base(), i) * digit_to_value(c),
-                                                Some(8),
+                                                NonZeroU64::new(8),
                                             )))
                                         })
                                         .intersperse_with(|| td().child("+"))

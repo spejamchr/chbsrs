@@ -4,7 +4,7 @@ use bigdecimal::BigDecimal;
 use leptos::*;
 
 use crate::{
-    bases::{rounded_string, val_from_base, val_to_base},
+    bases::{val_from_base, val_to_base},
     components::{home_inputs::HomeInputs, output_details::OutputDetails},
 };
 
@@ -17,7 +17,8 @@ pub fn Home() -> impl IntoView {
 
     let result_value = create_memo(move |_| val_from_base(&input_string(), &input_base()));
 
-    let string_value = create_memo(move |_| result_value().map(|v| rounded_string(v, None)));
+    let string_value =
+        create_memo(move |_| result_value().and_then(|v| val_to_base(&v, &BigDecimal::from(10))));
     let output_representation = create_memo(move |_| {
         result_value()
             .map_err(|_| "".to_string())

@@ -12,8 +12,12 @@ pub fn rounded_string(num: BigDecimal, hard_limit: Option<u64>) -> String {
     let (_, scale) = num.as_bigint_and_exponent();
     if scale > limit {
         format!("{}…", num.with_scale(limit)) // ellide
+    } else if num.is_integer() {
+        num.to_u32()
+            .map(|n| n.to_string())
+            .unwrap_or_else(|| num.to_string())
     } else {
-        num.to_usize()
+        num.to_f64()
             .map(|n| n.to_string())
             .unwrap_or_else(|| num.to_string())
     }
@@ -217,6 +221,34 @@ mod tests {
             (BigDecimal::from(3)).to_string(),
             decimal.unwrap().to_string()
         );
+    }
+
+    #[test]
+    fn parses_decimal() {
+        let decimal = val_from_base("0.12345678", &BigDecimal::from_str("10").unwrap());
+        assert_eq!("0.12345678".to_string(), decimal.unwrap().to_string());
+    }
+
+    #[test]
+    fn round_small_decimal() {
+        let decimal = BigDecimal::from_str("0.12345678")
+            .map(|v| rounded_string(v, None))
+            .unwrap();
+        assert_eq!("0.12345678".to_string(), decimal);
+    }
+
+    #[test]
+    fn round_longer_decimal() {
+        let decimal = BigDecimal::from_str("0.123456789")
+            .map(|v| rounded_string(v, None))
+            .unwrap();
+        assert_eq!("0.12345678…".to_string(), decimal);
+    }
+
+    #[test]
+    fn round_large_integer() {
+        let decimal = rounded_string(pow(&BigDecimal::from(10), 10), Some(8));
+        assert_eq!("1E+10".to_string(), decimal);
     }
 
     #[test]

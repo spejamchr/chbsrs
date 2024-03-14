@@ -50,8 +50,14 @@ body {
 }
 
 .highlight {
-  color: var(--blue-3);
+  color: var(--indigo-10);
   font-weight: bold;
+}
+
+@media (prefers-color-scheme: dark) {
+  .highlight {
+    color: var(--blue-3);
+  }
 }
 
 .align-end {

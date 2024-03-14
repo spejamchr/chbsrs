@@ -2,7 +2,6 @@
 
 use leptos::*;
 use leptos_meta::*;
-use leptos_router::*;
 
 // Modules
 mod bases;
@@ -11,7 +10,6 @@ mod pages;
 
 // Top-Level pages
 use crate::pages::home::Home;
-use crate::pages::not_found::NotFound;
 
 /// An app router which renders the homepage and handles 404's
 #[component]

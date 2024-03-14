@@ -7,7 +7,7 @@ use crate::components::value_in_base::value_in_base;
 
 #[component]
 pub fn HomeInputs(
-    string_value: Memo<Result<String, String>>,
+    base10_representation: Memo<Result<String, String>>,
     output_representation: Memo<Result<String, String>>,
     #[prop(into)] input_string: Signal<String>,
     #[prop(into)] set_input_string: WriteSignal<String>,
@@ -23,7 +23,7 @@ pub fn HomeInputs(
                 thead().child(
                     tr().child(th().child("Value in Base-10:"))
                         .child(th().child(value_in_base(
-                            string_value,
+                            base10_representation,
                             (|| BigDecimal::from(10)).into(),
                         ))),
                 ),

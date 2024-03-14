@@ -8,7 +8,7 @@ pub fn rounded_string(num: BigDecimal, hard_limit: Option<NonZeroU64>) -> String
             let str = num
                 .with_precision_round(hl, bigdecimal::RoundingMode::Down)
                 .to_string();
-            if str.split("E").count() > 1 {
+            if str.split('E').count() > 1 {
                 return str;
             } else {
                 return format!("{}…", str); // ellide

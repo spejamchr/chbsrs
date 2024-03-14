@@ -1,7 +1,7 @@
 use std::str::FromStr;
 
 use bigdecimal::BigDecimal;
-use leptos::*;
+use leptos::{html::*, *};
 
 use crate::{
     bases::{val_from_base, val_to_base},
@@ -11,19 +11,30 @@ use crate::{
 /// Default Home Page
 #[component]
 pub fn Home() -> impl IntoView {
-    let (input_string, set_input_string) = create_signal("23982982383829823983".to_string());
+    let (input_string, set_input_string) = create_signal("123.45".to_string());
     let (input_base, set_input_base) = create_signal(BigDecimal::from_str("10.3").unwrap());
     let (output_base, set_output_base) = create_signal(BigDecimal::from_str("10.3").unwrap());
 
     let result_value = create_memo(move |_| val_from_base(&input_string(), &input_base()));
 
-    let string_value =
+    let base10_representation =
         create_memo(move |_| result_value().and_then(|v| val_to_base(&v, &BigDecimal::from(10))));
     let output_representation = create_memo(move |_| {
         result_value()
             .map_err(|_| "".to_string())
             .and_then(|v| val_to_base(&v, &output_base()))
     });
+
+    let also_try = sub()
+        .child("Also try bases: ")
+        .child(code().child("pi"))
+        .child(", ")
+        .child(code().child("e"))
+        .child(", ")
+        .child(code().child("sqrt2"))
+        .child(", ")
+        .child(code().child("phi"))
+        .child(".");
 
     view! {
         <ErrorBoundary fallback=|errors| {
@@ -50,7 +61,7 @@ pub fn Home() -> impl IntoView {
                 <h1>"ChangeBase"</h1>
 
                 <HomeInputs
-                    string_value=string_value
+                    base10_representation=base10_representation
                     output_representation=output_representation
                     input_string=input_string
                     set_input_string=set_input_string
@@ -59,6 +70,8 @@ pub fn Home() -> impl IntoView {
                     output_base=output_base
                     set_output_base=set_output_base
                 />
+
+                {also_try}
 
                 <OutputDetails output={output_representation} base={output_base}/>
 

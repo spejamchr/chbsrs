@@ -1,8 +1,10 @@
-<picture>
-    <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/spejamchr/chbsrs/main/preview-dark.png">
-    <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/spejamchr/chbsrs/main/preview-light.png">
-    <img alt="Representing 123.45 as a base-pi number: 10220.00012120..." src="https://raw.githubusercontent.com/spejamchr/chbsrs/main/preview-light.png">
-</picture>
+<div align="center">
+    <picture>
+        <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/spejamchr/chbsrs/main/preview-dark.png">
+        <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/spejamchr/chbsrs/main/preview-light.png">
+        <img width="40%" alt="Representing 123.45 as a base-pi number: 10220.00012120..." src="https://raw.githubusercontent.com/spejamchr/chbsrs/main/preview-light.png">
+    </picture>
+</div>
 
 # ChangeBase
 
@@ -14,7 +16,7 @@ Built with [Leptos](https://github.com/leptos-rs/leptos).
 
 ## Why?
 
-I read that [Base-`e`](https://en.wikipedia.org/wiki/Non-integer_base_of_numeration#Base_e) has the
+I read that [base-`e`](https://en.wikipedia.org/wiki/Non-integer_base_of_numeration#Base_e) has the
 lowest [radix economy](https://en.wikipedia.org/wiki/Radix_economy#e_has_the_lowest_radix_economy),
 and I wanted to see what numbers would look like in base-`e`. Also, I wanted to try out Leptos.
 

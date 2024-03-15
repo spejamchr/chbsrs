@@ -2,7 +2,9 @@ use leptos::{html::*, *};
 
 use crate::{
     bases::BaseConversion,
-    components::{home_inputs::HomeInputs, output_details::OutputDetails},
+    components::{
+        home_inputs::HomeInputs, output_details::OutputDetails, site_footer::site_footer,
+    },
 };
 
 /// Default Home Page
@@ -31,6 +33,8 @@ pub fn Home() -> impl IntoView {
         .child(", ")
         .child(code().child("phi"))
         .child(".");
+
+    let footer = site_footer();
 
     view! {
         <ErrorBoundary fallback=|errors| {
@@ -66,6 +70,8 @@ pub fn Home() -> impl IntoView {
                 {also_try}
 
                 <OutputDetails base_conversion=base_conversion />
+
+                {footer}
 
             </div>
         </ErrorBoundary>

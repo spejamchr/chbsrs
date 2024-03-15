@@ -12,7 +12,6 @@
 body {
   font-family: sans-serif;
   text-align: center;
-  padding-bottom: var(--size-content-1);
 }
 
 .container {
@@ -66,6 +65,20 @@ body {
 
 .right-space {
   margin-right: var(--size-relative-3);
+}
+
+.site-footer {
+  width: 100%;
+  margin-top: var(--size-content-1);
+  margin-bottom: var(--size-content-1);
+  display: flex;
+  gap: 2em;
+  justify-content: center;
+  align-items: center;
+}
+
+.site-footer code {
+  font-size: var(--font-size-4);
 }
 
 h1,

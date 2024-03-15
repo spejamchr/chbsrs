@@ -47,6 +47,7 @@ impl BaseConversion {
 
     pub fn output_string(&self) -> Result<String, String> {
         self.base_10_value()
+            .map_err(|_| String::from(""))
             .and_then(|v| val_to_base(&v, &self.output_base))
     }
 }

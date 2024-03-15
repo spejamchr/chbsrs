@@ -138,15 +138,29 @@ fn floor(num: &BigDecimal) -> BigDecimal {
 
 fn base_digits_to_val(digits: &str, base: &BigDecimal) -> Result<BigDecimal, String> {
     let mut power = base.inverse();
+    let valid_for_base = |char: String| {
+        move |n: u32| -> Result<u32, String> {
+            match base
+                .with_scale_round(0, bigdecimal::RoundingMode::Up)
+                .to_u32()
+                .map(|b| n >= b)
+                .unwrap_or(false)
+            {
+                true => Err(format!("Invalid digit `{char}` for base-{}", base)),
+                false => Ok(n),
+            }
+        }
+    };
     rep_to_digit_exponent_pairs(digits)
         .into_iter()
         .rev()
         .try_fold(bigdecimal::Zero::zero(), |sum: BigDecimal, (char, _)| {
             power *= base;
-            match char.parse().or_else(|_| u32::from_str_radix(&char, 36)) {
-                Ok(int) => Ok(sum + int * power.clone()),
-                Err(_) => Err(format!("Unrecognized digit in input: {char}")),
-            }
+            char.parse()
+                .or_else(|_| u32::from_str_radix(&char, 36))
+                .map_err(|_| format!("Unrecognized digit in input: {char}"))
+                .and_then(valid_for_base(char))
+                .map(|int| sum + int * power.clone())
         })
         .map(|n| n.round(32).normalized())
 }

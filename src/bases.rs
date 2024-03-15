@@ -140,14 +140,9 @@ fn base_digits_to_val(digits: &str, base: &BigDecimal) -> Result<BigDecimal, Str
     let mut power = base.inverse();
     let valid_for_base = |char: String| {
         move |n: u32| -> Result<u32, String> {
-            match base
-                .with_scale_round(0, bigdecimal::RoundingMode::Up)
-                .to_u32()
-                .map(|b| n >= b)
-                .unwrap_or(false)
-            {
-                true => Err(format!("Invalid digit `{char}` for base-{}", base)),
-                false => Ok(n),
+            match base.to_f64().map(|b| (n as f64) < b).unwrap_or(true) {
+                true => Ok(n),
+                false => Err(format!("Invalid digit `{char}` for base-{}", base)),
             }
         }
     };

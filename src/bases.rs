@@ -202,11 +202,11 @@ fn val_to_base(value: &BigDecimal, base: &BigDecimal) -> Result<String, String> 
         return Ok("0".to_owned());
     }
 
-    let mut exp = 0;
-    let mut power = BigDecimal::from(1);
+    let mut exp = 1;
+    let mut power = base.clone();
     while power < value {
-        exp += 1;
-        power *= base;
+        exp *= 2;
+        power *= power.clone();
     }
     while exp > bigdecimal::Zero::zero()
         && floor(&((value.clone() / power.clone()) % base)) == bigdecimal::Zero::zero()

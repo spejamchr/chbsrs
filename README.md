@@ -1,79 +1,54 @@
 <picture>
-    <source srcset="https://raw.githubusercontent.com/leptos-rs/leptos/main/docs/logos/Leptos_logo_Solid_White.svg" media="(prefers-color-scheme: dark)">
-    <img src="https://raw.githubusercontent.com/leptos-rs/leptos/main/docs/logos/Leptos_logo_RGB.svg" alt="Leptos Logo">
+    <source media="(prefers-color-scheme: dark)" srcset="https://raw.githubusercontent.com/spejamchr/chbsrs/main/preview-dark.png">
+    <source media="(prefers-color-scheme: light)" srcset="https://raw.githubusercontent.com/spejamchr/chbsrs/main/preview-light.png">
+    <img alt="Representing 123.45 as a base-pi number: 10220.00012120..." src="https://raw.githubusercontent.com/spejamchr/chbsrs/main/preview-light.png">
 </picture>
 
-# Leptos Client-Side Rendered (CSR) App Starter Template
+# ChangeBase
 
-This is a template for use with the [Leptos][Leptos] web framework using the [Trunk][Trunk] tool to compile and serve your app in development.
+Convert numbers from one [positional notation](https://en.wikipedia.org/wiki/Positional_notation) to
+another. Either base can be a
+[non-integer](https://en.wikipedia.org/wiki/Non-integer_base_of_numeration), such as `pi` or `e`.
 
-## Creating your repo from the template
+Built with [Leptos](https://github.com/leptos-rs/leptos).
 
-This template requires you to have `cargo-generate` installed. You can install it with
+## Why?
 
-```sh
-cargo install cargo-generate
-```
+I read that [Base-`e`](https://en.wikipedia.org/wiki/Non-integer_base_of_numeration#Base_e) has the
+lowest [radix economy](https://en.wikipedia.org/wiki/Radix_economy#e_has_the_lowest_radix_economy),
+and I wanted to see what numbers would look like in base-`e`. Also, I wanted to try out Leptos.
 
+## Running Locally
 
-To set up your project with this template, run
-
-```sh
-cargo generate --git https://github.com/leptos-community/start-csr
-```
-
-to generate your new project, then
-
-```sh
-cd chbsrs
-```
-
-to go to your newly created project.
-
-By default, this template uses Rust `nightly` and requires that you've installed the `wasm` compilation target for your toolchain.
-
-
-Sass and Tailwind are also supported by the Trunk build tool, but are optional additions: [see here for more info on how to set those up with Trunk][Trunk-instructions].
-
+This site uses Rust `nightly` and requires that you've installed the `wasm` compilation target for
+your toolchain.
 
 If you don't have Rust nightly, you can install it with
+
 ```sh
 rustup toolchain install nightly --allow-downgrade
 ```
 
 You can add the `wasm` compilation target to rust using
+
 ```sh
 rustup target add wasm32-unknown-unknown
 ```
 
+Then clone the project
 
-## Developing your Leptos CSR project
+```sh
+git clone https://github.com/spejamchr/chbsrs.git
+```
 
-To develop your Leptos CSR project, running
+## Developing
+
+To run the app use [Trunk](https://github.com/trunk-rs/trunk):
 
 ```sh
 trunk serve --port 3000 --open
 ```
 
-will open your app in your default browser at `http://localhost:3000`.
+## Deploying
 
-
-## Deploying your Leptos CSR project
-
-To build a Leptos CSR app for release, use the command
-
-```sh
-trunk build --release
-```
-
-This will output the files necessary to run your app into the `dist` folder; you can then use any static site host to serve these files.
-
-For further information about hosting Leptos CSR apps, please refer to [the Leptos Book chapter on deployment available here][deploy-csr].
-
-
-[Leptos]: https://github.com/leptos-rs/leptos
-
-[Trunk]: https://github.com/trunk-rs/trunk
-[Trunk-instructions]: https://trunkrs.dev/assets/
-
-[deploy-csr]: https://book.leptos.dev/deployment/csr.html
+All pushes to `main` are automatically deployed by GitHub Actions.

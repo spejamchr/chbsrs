@@ -54,8 +54,12 @@ impl BaseConversion {
 
 fn val_from_popular_strings(s: &str) -> Option<BigDecimal> {
     match s.to_lowercase().as_str() {
-        "phi" => Some((BigDecimal::from(5).sqrt().unwrap() + 1) / 2),
-        "φ" => Some((BigDecimal::from(5).sqrt().unwrap() + 1) / 2),
+        "φ" => Some(
+            BigDecimal::from_str("1.61803398874989484820458683436563811772030917980576").unwrap(),
+        ),
+        "phi" => Some(
+            BigDecimal::from_str("1.61803398874989484820458683436563811772030917980576").unwrap(),
+        ),
         "pi" => Some(
             BigDecimal::from_str("3.14159265358979323846264338327950288419716939937510").unwrap(),
         ),
@@ -65,7 +69,15 @@ fn val_from_popular_strings(s: &str) -> Option<BigDecimal> {
         "e" => Some(
             BigDecimal::from_str("2.71828182845904523536028747135266249775724709369995").unwrap(),
         ),
-        "sqrt2" => Some(BigDecimal::from(2).sqrt().unwrap()),
+        "sqrt2" => Some(
+            BigDecimal::from_str("1.41421356237309504880168872420969807856967187537694").unwrap(),
+        ),
+        "sqrt3" => Some(
+            BigDecimal::from_str("1.73205080756887729352744634150587236694280525381038").unwrap(),
+        ),
+        "sqrt5" => Some(
+            BigDecimal::from_str("2.23606797749978969640917366873127623544061835961152").unwrap(),
+        ),
         "two" => Some(BigDecimal::from(2)),
         "binary" => Some(BigDecimal::from(2)),
         "three" => Some(BigDecimal::from(3)),
@@ -218,7 +230,7 @@ fn val_to_base(value: &BigDecimal, base: &BigDecimal) -> Result<String, String> 
     let precision = -9;
     let most_precise = pow(base, precision * 2);
 
-    while (value.abs() > most_precise || exp >= 0) && exp >= precision {
+    while (value > most_precise || exp >= 0) && exp >= precision {
         if exp == precision {
             output.push('…'); // ellide
             return Ok(output);

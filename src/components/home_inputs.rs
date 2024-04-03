@@ -15,6 +15,12 @@ pub fn HomeInputs(
     #[prop(into)] accurate_conversion: ReadSignal<Option<String>>,
     #[prop(into)] set_accurate_conversion: WriteSignal<Option<String>>,
 ) -> impl IntoView {
+    let show_accurate = create_memo(move |_| {
+        base_conversion()
+            .output_string()
+            .ok()
+            .and_then(|v| accurate_conversion().and_then(|a| if a == v { None } else { Some(a) }))
+    });
     move || {
         table()
             .classes("inputs")
@@ -48,13 +54,21 @@ pub fn HomeInputs(
                                     match base_conversion().output_string() {
                                         Ok(v) => span().child(
                                             code()
-                                                .child(span().child(&v).attr("tabindex", "0").attr(
-                                                    "title",
-                                                    move || {
-                                                        accurate_conversion()
-                                                            .unwrap_or_else(|| v.clone())
-                                                    },
-                                                ))
+                                                .child(move || {
+                                                    show_accurate()
+                                                        .map(|a| {
+                                                            span()
+                                                                .child(&v)
+                                                                .attr("tabindex", "0")
+                                                                .attr("title", a)
+                                                        })
+                                                        .unwrap_or_else(|| {
+                                                            span()
+                                                                .child(&v)
+                                                                .attr("tabindex", "0")
+                                                                .attr("title", "Loading...")
+                                                        })
+                                                })
                                                 .child(span().inner_html("&nbsp"))
                                                 .child(sub().child(move || {
                                                     rounded_bignum(

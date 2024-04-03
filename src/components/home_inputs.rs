@@ -4,7 +4,7 @@ use web_sys::Event;
 
 use crate::bases::BaseConversion;
 
-use super::value_in_base::value_in_base;
+use super::{rounded_bignum::rounded_bignum, value_in_base::value_in_base};
 
 #[component]
 pub fn HomeInputs(
@@ -19,10 +19,19 @@ pub fn HomeInputs(
             .child(
                 thead().child(
                     tr().child(th().child("Value in Base-10:"))
-                        .child(th().child(value_in_base(
-                            create_memo(move |_| base_conversion().base_10_string()),
-                            create_memo(move |_| BigDecimal::from(10)),
-                        ))),
+                        .child(th().child(div().classes("value").child(move || {
+                            match base_conversion().base_10_value() {
+                                Ok(v) => span().child(
+                                    code()
+                                        .child(rounded_bignum(v, None))
+                                        .child(span().inner_html("&nbsp"))
+                                        .child(sub().child(move || {
+                                            rounded_bignum(BigDecimal::from(10), None)
+                                        })),
+                                ),
+                                Err(e) => span().child(e),
+                            }
+                        }))),
                 ),
             )
             .child(

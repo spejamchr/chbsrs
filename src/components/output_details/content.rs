@@ -3,7 +3,10 @@ use std::num::NonZeroU64;
 use bigdecimal::BigDecimal;
 use leptos::{html::*, *};
 
-use crate::bases::{pow, rep_to_digit_exponent_pairs, rounded_string};
+use crate::{
+    bases::{pow, rep_to_digit_exponent_pairs},
+    components::rounded_bignum::rounded_bignum,
+};
 
 fn td_classes_generator() -> impl FnMut() -> String {
     let mut idx = 0;
@@ -44,10 +47,12 @@ where
 
     let digit_conversion = match base() > BigDecimal::from(10) {
         true => Some(
-            tr().child(td().classes("align-end").child(format!(
-                "Represent base-{} digits as base-10 numbers:",
-                rounded_string(base(), None)
-            )))
+            tr().child(
+                td().classes("align-end")
+                    .child("Represent base-")
+                    .child(move || rounded_bignum(base(), None))
+                    .child(" digits as base-10 numbers:"),
+            )
             .child(move || {
                 let mut gena = td_classes_generator();
                 let mut genb = td_classes_generator();
@@ -58,7 +63,7 @@ where
                         td().classes(gena())
                             .child(span().classes("highlight").child(digit_to_value(c)))
                             .child('(')
-                            .child(move || rounded_string(base(), None))
+                            .child(move || rounded_bignum(base(), None))
                             .child(span().inner_html("&NoBreak;"))
                             .child(sup().child(i))
                             .child(')')
@@ -91,13 +96,15 @@ where
                 .child(
                     tbody()
                         .child(
-                            tr().child(td().classes("align-end").child(move || {
-                                format!("The number in base-{}", rounded_string(base(), None))
-                            }))
+                            tr().child(
+                                td().classes("align-end")
+                                    .child("The number in base-")
+                                    .child(move || rounded_bignum(base(), None)),
+                            )
                             .child(
                                 td().classes("highlight")
                                     .attr("colspan", move || digit_exponent_pairs().len() * 2)
-                                    .child(output),
+                                    .child(span().attr("title", output).child(output)),
                             ),
                         )
                         .child(
@@ -111,7 +118,7 @@ where
                                 genb();
                                 digit_exponent_pairs()
                                     .into_iter()
-                                    .map(|(c, i)| {
+                                    .map(|(c, _)| {
                                         td().classes(gena()).attr("colspan", 2).child(
                                             span().classes("highlight").child(match c.len() {
                                                 1 => c.to_string(),
@@ -142,7 +149,7 @@ where
                                             .child(
                                                 span()
                                                     .classes("highlight")
-                                                    .child(move || rounded_string(base(), None))
+                                                    .child(move || rounded_bignum(base(), None))
                                                     .child(span().inner_html("&NoBreak;"))
                                                     .child(sup().child(i)),
                                             )
@@ -170,7 +177,7 @@ where
                                             .child(span().child(digit_to_value(c)))
                                             .child('(')
                                             .child(span().classes("highlight").child(move || {
-                                                rounded_string(pow(&base(), i), NonZeroU64::new(8))
+                                                rounded_bignum(pow(&base(), i), NonZeroU64::new(8))
                                             }))
                                             .child(')')
                                     })
@@ -189,7 +196,7 @@ where
                                         .into_iter()
                                         .map(|(c, i)| {
                                             td().classes(gena()).child(
-                                                span().classes("highlight").child(rounded_string(
+                                                span().classes("highlight").child(rounded_bignum(
                                                     pow(&base(), i) * digit_to_value(c),
                                                     NonZeroU64::new(8),
                                                 )),
@@ -211,7 +218,7 @@ where
                                         span()
                                             .classes("highlight")
                                             .child(move || {
-                                                rounded_string(
+                                                rounded_bignum(
                                                     digit_exponent_pairs()
                                                         .into_iter()
                                                         .map(|(c, i)| {

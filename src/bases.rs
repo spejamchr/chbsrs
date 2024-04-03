@@ -36,13 +36,8 @@ impl BaseConversion {
         }
     }
 
-    fn base_10_value(&self) -> Result<BigDecimal, String> {
+    pub fn base_10_value(&self) -> Result<BigDecimal, String> {
         val_from_base(&self.input_string, &self.input_base)
-    }
-
-    pub fn base_10_string(&self) -> Result<String, String> {
-        self.base_10_value()
-            .and_then(|v| val_to_base(&v, &BigDecimal::from(10)))
     }
 
     pub fn output_string(&self) -> Result<String, String> {
@@ -105,7 +100,7 @@ fn val_from_popular_strings(s: &str) -> Option<BigDecimal> {
     }
 }
 
-pub fn rounded_string(num: BigDecimal, hard_limit: Option<NonZeroU64>) -> String {
+pub fn rounded_string(num: &BigDecimal, hard_limit: Option<NonZeroU64>) -> String {
     if let Some(hl) = hard_limit {
         if num.digits() > hl.get() {
             let str = num
@@ -127,21 +122,17 @@ pub fn rounded_string(num: BigDecimal, hard_limit: Option<NonZeroU64>) -> String
             .map(|n| n.to_string())
             .unwrap_or_else(|| num.to_string())
     } else {
-        num.to_f64()
-            .map(|n| n.to_string())
-            .unwrap_or_else(|| num.to_string())
+        num.to_string()
     }
 }
 
 pub fn pow(base: &BigDecimal, exp: isize) -> BigDecimal {
     match exp {
         0 => bigdecimal::One::one(),
-        1 => base.clone(),
-        2 => base.square().round(50).normalized(),
-        3 => base * base.square().round(50).normalized(),
-        n if n < 0 => pow(base, -exp).inverse(),
-        n if n % 2 == 0 => pow(&(base.square().round(50).normalized()), n / 2),
-        n => base * pow(base, n - 1),
+        1 => base.clone().round(50).normalized(),
+        n if n < 0 => pow(base, -exp).inverse().round(50).normalized(),
+        n if n % 2 == 0 => pow(&base.square(), n / 2),
+        n => (base * pow(base, n - 1)).round(50).normalized(),
     }
 }
 
@@ -354,7 +345,7 @@ mod tests {
     #[test]
     fn round_small_decimal() {
         let decimal = BigDecimal::from_str("0.12345678")
-            .map(|v| rounded_string(v, None))
+            .map(|v| rounded_string(&v, None))
             .unwrap();
         assert_eq!("0.12345678".to_string(), decimal);
     }
@@ -362,21 +353,21 @@ mod tests {
     #[test]
     fn round_longer_decimal() {
         let decimal = BigDecimal::from_str("0.123456789")
-            .map(|v| rounded_string(v, None))
+            .map(|v| rounded_string(&v, None))
             .unwrap();
         assert_eq!("0.12345678…".to_string(), decimal);
     }
 
     #[test]
     fn round_large_integer() {
-        let decimal = rounded_string(pow(&BigDecimal::from(10), 10), NonZeroU64::new(8));
+        let decimal = rounded_string(&pow(&BigDecimal::from(10), 10), NonZeroU64::new(8));
         assert_eq!("1E+10".to_string(), decimal);
     }
 
     #[test]
     fn round_1234567890123_with_limit() {
         let decimal = rounded_string(
-            BigDecimal::from_str("1234567890123").unwrap(),
+            &BigDecimal::from_str("1234567890123").unwrap(),
             NonZeroU64::new(8),
         );
         assert_eq!("1.2345678E+12".to_string(), decimal);
@@ -385,7 +376,7 @@ mod tests {
     #[test]
     fn round_pi() {
         let decimal = rounded_string(
-            BigDecimal::from_str("3.14159265358979323846264338327950288419716939937510").unwrap(),
+            &BigDecimal::from_str("3.14159265358979323846264338327950288419716939937510").unwrap(),
             NonZeroU64::new(8),
         );
         assert_eq!("3.1415926…".to_string(), decimal);
@@ -393,14 +384,20 @@ mod tests {
 
     #[test]
     fn round_fake_pi() {
-        let decimal = rounded_string(BigDecimal::from_str("3.14").unwrap(), NonZeroU64::new(8));
+        let decimal = rounded_string(&BigDecimal::from_str("3.14").unwrap(), NonZeroU64::new(8));
         assert_eq!("3.14".to_string(), decimal);
     }
 
     #[test]
     fn round_small_integer() {
-        let decimal = rounded_string(pow(&BigDecimal::from(10), 8), NonZeroU64::new(8));
+        let decimal = rounded_string(&pow(&BigDecimal::from(10), 8), NonZeroU64::new(8));
         assert_eq!("100000000".to_string(), decimal);
+    }
+
+    #[test]
+    fn round_123_4567() {
+        let decimal = rounded_string(&BigDecimal::from_str("123.4567").unwrap(), None);
+        assert_eq!("123.4567".to_string(), decimal);
     }
 
     #[test]

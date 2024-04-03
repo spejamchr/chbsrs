@@ -91,10 +91,41 @@ where
                 .child(
                     tbody()
                         .child(
-                            tr().child(td().classes("align-end").child(format!(
-                                "Output value w/base-{} positioned values:",
-                                rounded_string(base(), None)
-                            )))
+                            tr().child(td().classes("align-end").child(move || {
+                                format!("The number in base-{}", rounded_string(base(), None))
+                            }))
+                            .child(
+                                td().classes("highlight")
+                                    .attr("colspan", move || digit_exponent_pairs().len() * 2)
+                                    .child(output),
+                            ),
+                        )
+                        .child(
+                            tr().child(
+                                td().classes("align-end")
+                                    .child("The first digit(s) of the number"),
+                            )
+                            .child(move || {
+                                let mut gena = td_classes_generator();
+                                let mut genb = td_classes_generator();
+                                genb();
+                                digit_exponent_pairs()
+                                    .into_iter()
+                                    .map(|(c, i)| {
+                                        td().classes(gena()).attr("colspan", 2).child(
+                                            span().classes("highlight").child(match c.len() {
+                                                1 => c.to_string(),
+                                                _ => format!("[{c}]"),
+                                            }),
+                                        )
+                                    })
+                                    .collect_view()
+                            }),
+                        )
+                        .child(
+                            tr().child(td().classes("align-end").child(
+                                "Multiply each digit by the base raised to the appropriate power",
+                            ))
                             .child(move || {
                                 let mut gena = td_classes_generator();
                                 let mut genb = td_classes_generator();
@@ -103,16 +134,18 @@ where
                                     .into_iter()
                                     .map(|(c, i)| {
                                         td().classes(gena())
-                                            .child(span().classes("highlight").child(
-                                                match c.len() {
-                                                    1 => c.to_string(),
-                                                    _ => format!("[{c}]"),
-                                                },
-                                            ))
+                                            .child(span().child(match c.len() {
+                                                1 => c.to_string(),
+                                                _ => format!("[{c}]"),
+                                            }))
                                             .child('(')
-                                            .child(move || rounded_string(base(), None))
-                                            .child(span().inner_html("&NoBreak;"))
-                                            .child(sup().child(i))
+                                            .child(
+                                                span()
+                                                    .classes("highlight")
+                                                    .child(move || rounded_string(base(), None))
+                                                    .child(span().inner_html("&NoBreak;"))
+                                                    .child(sup().child(i)),
+                                            )
                                             .child(')')
                                     })
                                     .intersperse_with(|| td().classes(genb()).child("+"))

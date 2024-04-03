@@ -59,6 +59,24 @@ body {
   }
 }
 
+@media (max-width: 640px) { 
+  .sm-hidden {
+    display: none;
+  }
+}
+
+@media (max-width: 768px) { 
+  .md-hidden {
+    display: none;
+  }
+}
+
+@media (max-width: 1024px) { 
+  .lg-hidden {
+    display: none;
+  }
+}
+
 .align-end {
   text-align: end;
 }

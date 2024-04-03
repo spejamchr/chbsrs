@@ -5,6 +5,19 @@ use leptos::{html::*, *};
 
 use crate::bases::{pow, rep_to_digit_exponent_pairs, rounded_string};
 
+fn td_classes_generator() -> impl FnMut() -> String {
+    let mut idx = 0;
+    move || {
+        idx += 1;
+        match idx {
+            1 => "".to_owned(),
+            2 => "sm-hidden".to_owned(),
+            3 => "md-hidden".to_owned(),
+            _ => "lg-hidden".to_owned(),
+        }
+    }
+}
+
 pub fn content<G>(output: Memo<String>, base: Signal<BigDecimal>, close: G) -> impl IntoView
 where
     G: Fn() + 'static,
@@ -36,16 +49,21 @@ where
                 rounded_string(base(), None)
             )))
             .child(move || {
+                let mut gena = td_classes_generator();
+                let mut genb = td_classes_generator();
+                genb();
                 digit_exponent_pairs()
                     .into_iter()
                     .map(|(c, i)| {
-                        td().child(span().classes("highlight").child(digit_to_value(c)))
+                        td().classes(gena())
+                            .child(span().classes("highlight").child(digit_to_value(c)))
                             .child('(')
                             .child(move || rounded_string(base(), None))
+                            .child(span().inner_html("&NoBreak;"))
                             .child(sup().child(i))
                             .child(')')
                     })
-                    .intersperse_with(|| td().child("+"))
+                    .intersperse_with(|| td().classes(genb()).child("+"))
                     .collect_view()
             })
             .child(filler()),
@@ -78,21 +96,26 @@ where
                                 rounded_string(base(), None)
                             )))
                             .child(move || {
+                                let mut gena = td_classes_generator();
+                                let mut genb = td_classes_generator();
+                                genb();
                                 digit_exponent_pairs()
                                     .into_iter()
                                     .map(|(c, i)| {
-                                        td().child(span().classes("highlight").child(
-                                            match c.len() {
-                                                1 => c.to_string(),
-                                                _ => format!("[{c}]"),
-                                            },
-                                        ))
-                                        .child('(')
-                                        .child(move || rounded_string(base(), None))
-                                        .child(sup().child(i))
-                                        .child(')')
+                                        td().classes(gena())
+                                            .child(span().classes("highlight").child(
+                                                match c.len() {
+                                                    1 => c.to_string(),
+                                                    _ => format!("[{c}]"),
+                                                },
+                                            ))
+                                            .child('(')
+                                            .child(move || rounded_string(base(), None))
+                                            .child(span().inner_html("&NoBreak;"))
+                                            .child(sup().child(i))
+                                            .child(')')
                                     })
-                                    .intersperse_with(|| td().child("+"))
+                                    .intersperse_with(|| td().classes(genb()).child("+"))
                                     .collect_view()
                             })
                             .child(filler()),
@@ -104,17 +127,21 @@ where
                                     .child("Evaluate the exponents on the base:"),
                             )
                             .child(move || {
+                                let mut gena = td_classes_generator();
+                                let mut genb = td_classes_generator();
+                                genb();
                                 digit_exponent_pairs()
                                     .into_iter()
                                     .map(|(c, i)| {
-                                        td().child(span().child(digit_to_value(c)))
+                                        td().classes(gena())
+                                            .child(span().child(digit_to_value(c)))
                                             .child('(')
                                             .child(span().classes("highlight").child(move || {
                                                 rounded_string(pow(&base(), i), NonZeroU64::new(8))
                                             }))
                                             .child(')')
                                     })
-                                    .intersperse_with(|| td().child("+"))
+                                    .intersperse_with(|| td().classes(genb()).child("+"))
                                     .collect_view()
                             })
                             .child(filler()),
@@ -122,17 +149,20 @@ where
                         .child(
                             tr().child(td().classes("align-end").child("Multiply to get:"))
                                 .child(move || {
+                                    let mut gena = td_classes_generator();
+                                    let mut genb = td_classes_generator();
+                                    genb();
                                     digit_exponent_pairs()
                                         .into_iter()
                                         .map(|(c, i)| {
-                                            td().child(span().classes("highlight").child(
-                                                rounded_string(
+                                            td().classes(gena()).child(
+                                                span().classes("highlight").child(rounded_string(
                                                     pow(&base(), i) * digit_to_value(c),
                                                     NonZeroU64::new(8),
-                                                ),
-                                            ))
+                                                )),
+                                            )
                                         })
-                                        .intersperse_with(|| td().child("+"))
+                                        .intersperse_with(|| td().classes(genb()).child("+"))
                                         .collect_view()
                                 })
                                 .child(filler()),

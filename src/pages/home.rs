@@ -23,6 +23,13 @@ pub fn Home() -> impl IntoView {
         )
     });
 
+    let (accurate_conversion, set_accurate_conversion) = create_signal::<Option<String>>(None);
+
+    create_effect(move |_| {
+        base_conversion();
+        set_accurate_conversion(None)
+    });
+
     let also_try = sub()
         .child("Also try bases: ")
         .child(code().child("pi"))
@@ -65,6 +72,8 @@ pub fn Home() -> impl IntoView {
                     set_input_string=set_input_string
                     set_input_base_string=set_input_base_string
                     set_output_base_string=set_output_base_string
+                    accurate_conversion=accurate_conversion
+                    set_accurate_conversion=set_accurate_conversion
                 />
 
                 {also_try}

@@ -3,4 +3,3 @@ pub mod home_inputs;
 pub mod output_details;
 pub mod rounded_bignum;
 pub mod site_footer;
-pub mod value_in_base;

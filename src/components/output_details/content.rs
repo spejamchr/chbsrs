@@ -104,7 +104,12 @@ where
                             .child(
                                 td().classes("highlight")
                                     .attr("colspan", move || digit_exponent_pairs().len() * 2)
-                                    .child(span().attr("title", output).child(output)),
+                                    .child(
+                                        span()
+                                            .attr("tabindex", "0")
+                                            .attr("title", output)
+                                            .child(output),
+                                    ),
                             ),
                         )
                         .child(

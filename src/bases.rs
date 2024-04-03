@@ -37,13 +37,19 @@ impl BaseConversion {
     }
 
     pub fn base_10_value(&self) -> Result<BigDecimal, String> {
-        val_from_base(&self.input_string, &self.input_base)
+        val_from_base(&self.input_string, &self.input_base).map(|v| v.round(50).normalized())
     }
 
     pub fn output_string(&self) -> Result<String, String> {
         self.base_10_value()
             .map_err(|_| String::from(""))
-            .and_then(|v| val_to_base(&v, &self.output_base))
+            .and_then(|v| val_to_base(&v, &self.output_base, -9))
+    }
+
+    pub fn output_string_accurate(&self) -> Result<String, String> {
+        self.base_10_value()
+            .map_err(|_| String::from(""))
+            .and_then(|v| val_to_base(&v, &self.output_base, -49))
     }
 }
 
@@ -196,7 +202,7 @@ fn digit_to_string(digit: usize) -> String {
     }
 }
 
-fn val_to_base(value: &BigDecimal, base: &BigDecimal) -> Result<String, String> {
+fn val_to_base(value: &BigDecimal, base: &BigDecimal, precision: isize) -> Result<String, String> {
     let mut value = value.clone();
     if base <= &bigdecimal::One::one() {
         return Err("Output base must be greater than 1".to_string());
@@ -218,7 +224,6 @@ fn val_to_base(value: &BigDecimal, base: &BigDecimal) -> Result<String, String> 
         power = power / base;
     }
     let mut output = String::from("");
-    let precision = -9;
     let most_precise = pow(base, precision * 2);
 
     while (value > most_precise || exp >= 0) && exp >= precision {
@@ -402,7 +407,7 @@ mod tests {
 
     #[test]
     fn show_2_in_base_10() {
-        let string = val_to_base(&BigDecimal::from(2), &BigDecimal::from(10));
+        let string = val_to_base(&BigDecimal::from(2), &BigDecimal::from(10), -9);
         assert_eq!(Ok("2".to_owned()), string);
     }
 
@@ -411,6 +416,7 @@ mod tests {
         let string = val_to_base(
             &BigDecimal::from_str("0.00000001").unwrap(),
             &BigDecimal::from(10),
+            -9,
         );
         assert_eq!(Ok("0.00000001".to_owned()), string);
     }
@@ -420,13 +426,18 @@ mod tests {
         let string = val_to_base(
             &BigDecimal::from_str("0.000000001").unwrap(),
             &BigDecimal::from(10),
+            -9,
         );
         assert_eq!(Ok("0.00000000…".to_owned()), string);
     }
 
     #[test]
     fn round_parsing_correctly() {
-        let string = val_to_base(&BigDecimal::from(3), &BigDecimal::from_str("10.3").unwrap());
+        let string = val_to_base(
+            &BigDecimal::from(3),
+            &BigDecimal::from_str("10.3").unwrap(),
+            -9,
+        );
         assert_eq!(Ok("3".to_owned()), string);
     }
 }

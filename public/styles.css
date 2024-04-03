@@ -59,22 +59,59 @@ body {
   }
 }
 
-@media (max-width: 640px) { 
+@media (max-width: 640px) {
   .sm-hidden {
     display: none;
   }
 }
 
-@media (max-width: 768px) { 
+@media (max-width: 768px) {
   .md-hidden {
     display: none;
   }
 }
 
-@media (max-width: 1024px) { 
+@media (max-width: 1024px) {
   .lg-hidden {
     display: none;
   }
+}
+
+/* Show titles on mobile browsers by tapping
+* From: https://stackoverflow.com/a/60660207
+* */
+@media (pointer: coarse), (hover: none) {
+  [tabindex][title] {
+    position: relative;
+    display: inline-flex;
+    justify-content: center;
+    border-bottom: 1px dashed;
+  }
+  [tabindex][title]:focus::after {
+    content: attr(title);
+    position: absolute;
+    top: 90%;
+    color: #000;
+    background-color: #fff;
+    border: 1px solid;
+    width: fit-content;
+    padding: 3px;
+    font-size: 10px;
+    z-index: 1;
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  @media (pointer: coarse), (hover: none) {
+    [title]:focus::after {
+      color: #fff;
+      background-color: #000;
+    }
+  }
+}
+
+#footer-emoji {
+  border: 0;
 }
 
 .align-end {

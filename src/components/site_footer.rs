@@ -29,6 +29,8 @@ pub fn site_footer() -> impl IntoView {
             )
             .child(
                 code()
+                    .id("footer-emoji")
+                    .attr("tabindex", "0")
                     .attr("title", move || match found_bunny_at() {
                         Some(_) => "you found the easter bunny... ↓",
                         None => "there are no easter eggs here",

@@ -4,7 +4,7 @@ use web_sys::Event;
 
 use crate::bases::BaseConversion;
 
-use super::{rounded_bignum::rounded_bignum, value_in_base::value_in_base};
+use super::rounded_bignum::rounded_bignum;
 
 #[component]
 pub fn HomeInputs(
@@ -12,6 +12,8 @@ pub fn HomeInputs(
     #[prop(into)] set_input_string: WriteSignal<String>,
     #[prop(into)] set_input_base_string: WriteSignal<String>,
     #[prop(into)] set_output_base_string: WriteSignal<String>,
+    #[prop(into)] accurate_conversion: ReadSignal<Option<String>>,
+    #[prop(into)] set_accurate_conversion: WriteSignal<Option<String>>,
 ) -> impl IntoView {
     move || {
         table()
@@ -35,12 +37,37 @@ pub fn HomeInputs(
                 ),
             )
             .child(
-                tfoot().child(tr().child(th().child("Output Value:")).child(th().child(
-                    value_in_base(
-                        create_memo(move |_| base_conversion().output_string()),
-                        create_memo(move |_| base_conversion().output_base),
+                tfoot()
+                    .on(ev::mouseover, move |_| {
+                        set_accurate_conversion(base_conversion().output_string_accurate().ok())
+                    })
+                    .child(
+                        tr().child(th().child("Output Value:"))
+                            .child(th().child(move || {
+                                div().classes("value").child(
+                                    match base_conversion().output_string() {
+                                        Ok(v) => span().child(
+                                            code()
+                                                .child(span().child(&v).attr("tabindex", "0").attr(
+                                                    "title",
+                                                    move || {
+                                                        accurate_conversion()
+                                                            .unwrap_or_else(|| v.clone())
+                                                    },
+                                                ))
+                                                .child(span().inner_html("&nbsp"))
+                                                .child(sub().child(move || {
+                                                    rounded_bignum(
+                                                        base_conversion().output_base,
+                                                        None,
+                                                    )
+                                                })),
+                                        ),
+                                        Err(e) => span().child(e),
+                                    },
+                                )
+                            })),
                     ),
-                ))),
             )
             .child(
                 tbody()
@@ -71,32 +98,32 @@ pub fn HomeInputs(
                         ),
                     )
                     .child(
-                        tr().attr("title", move || base_conversion().input_base.to_string())
-                            .child(td().child(label().attr("for", "InputBase").child("Input Base")))
-                            .child(
-                                td().child(
-                                    input()
-                                        .id("InputBase")
-                                        .attr("type", "text")
-                                        .attr("value", move || base_conversion().input_base_string)
-                                        .on(ev::input, update_base(set_input_base_string)),
-                                ),
+                        tr().child(
+                            td().child(label().attr("for", "InputBase").child("Input Base")),
+                        )
+                        .child(
+                            td().child(
+                                input()
+                                    .id("InputBase")
+                                    .attr("type", "text")
+                                    .attr("value", move || base_conversion().input_base_string)
+                                    .on(ev::input, update_base(set_input_base_string)),
                             ),
+                        ),
                     )
                     .child(
-                        tr().attr("title", move || base_conversion().output_base.to_string())
-                            .child(
-                                td().child(label().attr("for", "OutputBase").child("Output Base")),
-                            )
-                            .child(
-                                td().child(
-                                    input()
-                                        .id("OutputBase")
-                                        .attr("type", "text")
-                                        .attr("value", move || base_conversion().output_base_string)
-                                        .on(ev::input, update_base(set_output_base_string)),
-                                ),
+                        tr().child(
+                            td().child(label().attr("for", "OutputBase").child("Output Base")),
+                        )
+                        .child(
+                            td().child(
+                                input()
+                                    .id("OutputBase")
+                                    .attr("type", "text")
+                                    .attr("value", move || base_conversion().output_base_string)
+                                    .on(ev::input, update_base(set_output_base_string)),
                             ),
+                        ),
                     ),
             )
     }

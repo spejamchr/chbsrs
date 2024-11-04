@@ -23,7 +23,8 @@ and I wanted to see what numbers would look like in base-`e`. Also, I wanted to 
 ## Running Locally
 
 This site uses Rust `nightly` and requires that you've installed the `wasm` compilation target for
-your toolchain.
+your toolchain. See [getting started with
+Leptos](https://book.leptos.dev/getting_started/index.html).
 
 If you don't have Rust nightly, you can install it with
 

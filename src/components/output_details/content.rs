@@ -79,6 +79,7 @@ where
     div()
         .child(
             button()
+                .classes("mx-auto")
                 .on(ev::click, move |_| close())
                 .child("Hide Output Details"),
         )
@@ -98,7 +99,7 @@ where
                         .child(
                             tr().child(
                                 td().classes("align-end")
-                                    .child("The number in base-")
+                                    .child("Write the number in base-")
                                     .child(move || rounded_bignum(base(), None)),
                             )
                             .child(
@@ -110,7 +111,7 @@ where
                         .child(
                             tr().child(
                                 td().classes("align-end")
-                                    .child("The first digit(s) of the number"),
+                                    .child("Separate the leading digit(s) of the number"),
                             )
                             .child(move || {
                                 let mut gena = td_classes_generator();
